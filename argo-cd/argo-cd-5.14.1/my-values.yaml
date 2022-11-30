@@ -338,7 +338,7 @@ configs:
 
   # -- Repository credentials to be used as Templates for other repos
   ## Creates a secret for each key/value specified below to create repository credentials
-  credentialTemplates:
+  credentialTemplates: {}
     # github-enterprise-creds-1:
     #   url: https://github.com/argoproj
     #   githubAppID: 1
@@ -352,12 +352,7 @@ configs:
     #   url: https://github.com/argoproj
     #   password: my-password
     #   username: my-username
-    ssh-creds:
-     url: git@github.com:junghoon2/k8s-class.git
-     sshPrivateKey: |
-       -----BEGIN OPENSSH PRIVATE KEY-----
-       ...
-       -----END OPENSSH PRIVATE KEY-----
+    # ssh-creds:
 
   # -- Annotations to be added to `configs.credentialTemplates` Secret
   credentialTemplatesAnnotations: {}
@@ -377,7 +372,6 @@ configs:
     #   password: my-password
     #   username: my-username
     # private-repo:
-    #   url: https://github.com/argoproj/private-repo
 
   # -- Annotations to be added to `configs.repositories` Secret
   repositoriesAnnotations: {}
@@ -1561,21 +1555,20 @@ server:
 
   ingress:
     # -- Enable an ingress resource for the Argo CD server
-    enabled: true
+    enabled: false
     # -- Additional ingress annotations
-    annotations:
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    annotations: {}
     # -- Additional ingress labels
     labels: {}
     # -- Defines which ingress controller will implement the resource
-    ingressClassName: "nginx"
+    ingressClassName: ""
 
     # -- List of ingress hosts
     ## Argo Ingress.
     ## Hostnames must be provided if Ingress is enabled.
     ## Secrets must be manually created in the namespace
     hosts:
-      - argocd.myweb.com
+      []
 
     # -- List of ingress paths
     paths:
