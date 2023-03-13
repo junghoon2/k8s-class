@@ -2,74 +2,116 @@ provider "aws" {
   region = local.region
 }
 
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+  }
+}
+
+data "aws_availability_zones" "available" {}
+data "aws_caller_identity" "current" {}
+
 locals {
-  name            = "jerry-test-01"
-  cluster_version = "1.24"
+  name            = "singapore-test"
+  cluster_version = "1.25"
   region          = "ap-southeast-1"
 
+  vpc_cidr = "10.110.0.0/16"
+  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+
   tags = {
-    env        = "dev"
-    user       = "jerry" 
+    env  = "dev"
+    user = "jerry"
   }
 }
 
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  version         = "~> 18.0"
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 19.0"
 
-  cluster_name    = local.name
-  cluster_version = local.cluster_version
-
-  cluster_endpoint_private_access = true
-  cluster_endpoint_public_access  = true
-
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnets
+  cluster_name                   = local.name
+  cluster_version                = local.cluster_version
+  cluster_endpoint_public_access = true
 
   cluster_addons = {
     coredns = {
-      resolve_conflicts = "OVERWRITE"
+      preserve    = true
+      most_recent = true
+
+      timeouts = {
+        create = "25m"
+        delete = "10m"
+      }
     }
-    kube-proxy = {}
+    kube-proxy = {
+      most_recent = true
+    }
     vpc-cni = {
-      resolve_conflicts = "OVERWRITE"
-      service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
+      most_recent = true
+    }
+  }
+
+  create_kms_key = false
+  cluster_encryption_config = {
+    resources        = ["secrets"]
+    provider_key_arn = module.kms.key_arn
+  }
+
+  iam_role_additional_policies = {
+    additional = aws_iam_policy.additional.arn
+  }
+
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = ["module.vpc.private_subnets", "module.vpc.public_subnets"]
+  control_plane_subnet_ids = module.vpc.intra_subnets
+
+  # Extend cluster security group rules
+  cluster_security_group_additional_rules = {
+    ingress_nodes_ephemeral_ports_tcp = {
+      description                = "Nodes on ephemeral ports"
+      protocol                   = "tcp"
+      from_port                  = 1025
+      to_port                    = 65535
+      type                       = "ingress"
+      source_node_security_group = true
+    }
+  }
+
+  # Extend node-to-node security group rules
+  node_security_group_additional_rules = {
+    ingress_self_all = {
+      description = "Node to node all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
     }
   }
 
   eks_managed_node_group_defaults = {
-    ami_type      = "AL2_x86_64"
+    ami_type = "AL2_x86_64"
 
-    # https://github.com/terraform-aws-modules/terraform-aws-eks/issues/1986
-    create_cluster_primary_security_group_tags = false
-    create_security_group = true
+    attach_cluster_primary_security_group = true
+    iam_role_additional_policies = {
+      additional = aws_iam_policy.additional.arn
+    }
 
-    cluster_primary_security_group_id = module.eks.cluster_primary_security_group_id
-    vpc_security_group_ids = [
-      module.eks.cluster_security_group_id,
-    ]
-
-    disable_api_termination = false
-    enable_monitoring       = true
-
-    # We are using the IRSA created below for permissions 
-    # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster) 
-    # and then turn this off after the cluster/node group is created. Without this initial policy, 
-    # the VPC CNI fails to assign IPs and nodes cannot join the cluster 
-    # See https://github.com/aws/containers-roadmap/issues/1666 for more context 
-    
-    # iam_role_attach_cni_policy = false
-    iam_role_attach_cni_policy = true
-
-    ebs_optimized           = true
+    ebs_optimized = true
     block_device_mappings = {
       xvda = {
         device_name = "/dev/xvda"
         ebs = {
-          volume_size           = 100
-          volume_type           = "gp3"
-          iops                  = 3000
-          throughput            = 150
+          volume_size = 100
+          volume_type = "gp3"
+          iops        = 3000
+          throughput  = 150
           # encrypted             = true
           # kms_key_id            = aws_kms_key.ebs.arn
           delete_on_termination = true
@@ -77,72 +119,79 @@ module "eks" {
       }
     }
     tags = local.tags
-    enable_irsa = true
   }
 
   eks_managed_node_groups = {
-    base = {    
-      name          = "base"  
+    base = {
+      name            = "base"
       use_name_prefix = false
 
-      instance_types = ["t2.large", "t3.large", "t3a.large", "m6i.large"]
+      instance_types = ["t3.large", "t3a.large", "m6i.large"]
       capacity_type  = "SPOT"
 
-      min_size     = 3
+      min_size     = 1
       max_size     = 10
-      desired_size = 3
+      desired_size = 1
 
-      subnet_ids = module.vpc.public_subnets
+      subnet_ids = module.vpc.private_subnets
     }
   }
 }
-
-data "aws_availability_zones" "available" {}
-
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~>3.12"
 
-  name                 = local.name
-  cidr                 = "10.102.0.0/16"
-  azs                  = data.aws_availability_zones.available.names
-  private_subnets      = ["10.102.0.0/22", "10.102.4.0/22", "10.102.8.0/22"]
-  public_subnets       = ["10.102.12.0/22", "10.102.16.0/22", "10.102.20.0/22"]
+  name = local.name
+  cidr = local.vpc_cidr
 
-  create_egress_only_igw          = true
+  azs             = local.azs
+  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
+  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
+  intra_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 52)]
 
   enable_nat_gateway   = true
-  single_nat_gateway   = true
   enable_dns_hostnames = true
 
-  tags = local.tags
+  enable_flow_log                      = true
+  create_flow_log_cloudwatch_iam_role  = true
+  create_flow_log_cloudwatch_log_group = true
 
   public_subnet_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/elb"              = 1
+    "kubernetes.io/role/elb" = 1
   }
 
   private_subnet_tags = {
-    "kubernetes.io/cluster/${local.name}" = "shared"
-    "kubernetes.io/role/internal-elb"     = 1
+    "kubernetes.io/role/internal-elb" = 1
   }
 
+  tags = local.tags
 }
 
-module "vpc_cni_irsa" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 4.12"
+resource "aws_iam_policy" "additional" {
+  name = "${local.name}-additional"
 
-  role_name_prefix      = "vpc_cni"
-  attach_vpc_cni_policy = true
-  vpc_cni_enable_ipv4   = true
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+}
 
-  oidc_providers = {
-    main = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:aws-node"]
-    }
-  }
+module "kms" {
+  source  = "terraform-aws-modules/kms/aws"
+  version = "1.1.0"
+
+  aliases               = ["eks/${local.name}"]
+  description           = "${local.name} cluster encryption key"
+  enable_default_policy = true
+  key_owners            = [data.aws_caller_identity.current.arn]
 
   tags = local.tags
 }
