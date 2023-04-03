@@ -1,0 +1,10 @@
+{{- if .Values.env }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "atlas-default-template.fullname" . }}-env
+data:
+{{- range $key, $val := .Values.env }}
+{{ $key | indent 2 }}: {{ $val | quote }}
+{{- end}}
+{{- end}}

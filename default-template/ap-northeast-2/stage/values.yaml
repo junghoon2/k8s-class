@@ -1,0 +1,91 @@
+image:
+  repository: pengbai/docker-supermario # 이미지 레포 주소를 입력하세요. e.g. XXXXXXXX.dkr.ecr.ap-northeast-2.amazonaws.com
+  pullPolicy: Always
+  tag: "latest" # 레포에서 사용하는 태그를 써주세요 e.g. v0.0.1
+
+env:
+  {}
+  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+  # e.g.
+  # SERVER_PORT: 8080
+  # SERVER_HOST: atlas-default
+  # ...
+
+secrets:
+  {}
+  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+  # e.g.
+  # PostgreSQL_PASSWORD: cGFzc3dvcmQ=
+  # ...
+
+terminationGracePeriodSeconds: 30
+
+metrics:
+  enabled: false # true로 바꾸면 /metrics로 메트릭스를 노출합니다
+  path: /metrics # 메트릭스 경로를 바꿀 수 있습니다
+
+probes:
+  liveness:
+    enabled: false
+    path: / # liveness 경로를 바꿀 수 있습니다 e.g. /healthz
+  readiness:
+    enabled: false
+    path: / # readiness 경로를 바꿀 수 있습니다 e.g. /healthz
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Authentication
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+# Security
+podSecurityContext: {}
+securityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+# Networking
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+# Conatiner resources
+resources:
+  limits:
+    # memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# HPA
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Scheduling
+nodeSelector: {}
+tolerations: []
+affinity: {}
