@@ -6,16 +6,16 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/group.name: eks-oregon-stage02
+    alb.ingress.kubernetes.io/group.name: my-alb-group
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:886632063643:certificate/6a78813e-866f-4932-8eaf-87738a9d6381
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:XXXXXXXXXX:certificate/XXXXXXXX
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/actions.rule-echoserver: >
       {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"200","messageBody":"Path is /"}}
 spec:
   ingressClassName: alb
   rules:
-    - host: alb-stage.us-west-2.switchboard.pro
+    - host: www.example.com
       http:
         paths:
           - path: /echo-server
