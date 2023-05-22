@@ -30,6 +30,18 @@ module "eks" {
     provider_key_arn = module.kms.key_arn
   }
 
+  manage_aws_auth_configmap = true
+  aws_auth_roles = [
+    # We need to add in the Karpenter node IAM role for nodes launched by Karpenter
+    {
+      rolearn  = module.karpenter.role_arn
+      username = "system:node:{{EC2PrivateDNSName}}"
+      groups = [
+        "system:bootstrappers",
+        "system:nodes",
+      ]
+    },
+  ]
   iam_role_additional_policies = {
     additional = aws_iam_policy.additional.arn
   }
@@ -96,10 +108,18 @@ module "eks" {
       capacity_type  = "SPOT"
 
       min_size     = 1
-      max_size     = 10
+      max_size     = 1
       desired_size = 1
 
       subnet_ids = module.vpc.private_subnets
     }
   }
+
+  tags = merge(local.tags, {
+    # NOTE - if creating multiple security groups with this module, only tag the
+    # security group that Karpenter should utilize with the following tag
+    # (i.e. - at most, only one security group should have this tag in your account)
+    "karpenter.sh/discovery" = local.name
+  })
+
 }

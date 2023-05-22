@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: karpenter
+  namespace: argocd
+spec:
+  destination:
+    namespace: karpenter
+    server: https://kubernetes.default.svc
+  project: devops
+  source:
+    helm:
+      valueFiles:
+      - ci/switch-oregon-stage.yaml
+      releaseName: karpenter
+    path: helm/karpenter
+    repoURL: git@github.com:goodatlas/devops.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
