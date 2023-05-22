@@ -19,7 +19,7 @@ data "aws_caller_identity" "current" {}
 
 locals {
   name            = "singapore-test"
-  cluster_version = "1.25"
+  cluster_version = "1.26"
   region          = "ap-southeast-1"
 
   vpc_cidr = "10.110.0.0/16"
