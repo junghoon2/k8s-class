@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  {{ .Values.detail.name }}
+  namespace: {{ .Values.detail.namespace }}
+spec:
+  replicas: {{ .Values.detail.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.detail.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.detail.name }}
+    spec:
+      containers:
+        - name: {{ .Values.detail.name }}
+          image: "{{ .Values.detail.image.repository }}:{{ .Values.detail.image.tag }}"
+          imagePullPolicy: {{ .Values.detail.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.detail.service.targetPort }}
+              protocol: TCP
+          {{- if .Values.detail.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.detail.livenessProbe.path }}
+              port: {{ .Values.detail.livenessProbe.port }}
+            initialDelaySeconds: {{ .Values.detail.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.detail.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.detail.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.detail.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.detail.livenessProbe.failureThreshold }}
+          {{- end }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - cat readiness.txt | grep ready
+            initialDelaySeconds: 15
+            periodSeconds: 3
+          {{- if .Values.detail.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.detail.startupProbe.path }}
+              port: {{ .Values.detail.startupProbe.port }}
+            initialDelaySeconds: {{ .Values.detail.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.detail.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.detail.startupProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.detail.startupProbe.successThreshold }}
+            failureThreshold: {{ .Values.detail.startupProbe.failureThreshold }}
+          {{- end }}
+          env:
+            {{- toYaml .Values.detail.env | nindent 12 }}
+          resources:
+            {{- toYaml .Values.detail.resources | nindent 12 }}
+      {{- with .Values.detail.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.detail.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.detail.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

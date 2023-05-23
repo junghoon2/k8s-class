@@ -1,0 +1,20 @@
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: default
+spec:
+  subnetSelector:
+    karpenter.sh/discovery: singapore-test
+    Name: "singapore-test-private*"
+  securityGroupSelector:
+    karpenter.sh/discovery: singapore-test
+    Name: singapore-test-node
+  tags:
+    karpenter.sh/discovery: singapore-test
+  blockDeviceMappings: # (2)
+  - deviceName: /dev/xvda
+    ebs:
+      volumeSize: 100Gi
+      volumeType: gp3
+      encrypted: true
+      deleteOnTermination: true
