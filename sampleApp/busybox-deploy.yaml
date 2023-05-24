@@ -20,5 +20,5 @@ spec:
         args: ["-c", "sleep inf"]
         resources:
           requests:
-            cpu: 1500m
+            cpu: 100m
             memory: 128Mi

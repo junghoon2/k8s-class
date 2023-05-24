@@ -5,10 +5,8 @@ metadata:
 spec:
   subnetSelector:
     karpenter.sh/discovery: singapore-test
-    Name: "singapore-test-private*"
   securityGroupSelector:
     karpenter.sh/discovery: singapore-test
-    Name: singapore-test-node
   tags:
     karpenter.sh/discovery: singapore-test
   blockDeviceMappings: # (2)
