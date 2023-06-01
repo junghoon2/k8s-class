@@ -1,10 +1,10 @@
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
-  name: demo-instrumentation
+  name: otel-instrumentation
 spec:
   exporter:
-    endpoint: http://demo-collector:4317
+    endpoint: http://otel-collector-opentelemetry-collector.opentelemetry-operator:4317
   propagators:
   - tracecontext
   - baggage
