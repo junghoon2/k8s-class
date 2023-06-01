@@ -1,25 +1,20 @@
+ingester:
+  persistence:
+    enabled: true
+    size: 10Gi
 traces:
   otlp:
     http:
-      # -- Enable Tempo to ingest Open Telemetry HTTP traces
       enabled: true
-      # -- HTTP receiver advanced config
       receiverConfig: {}
     grpc:
-      # -- Enable Tempo to ingest Open Telemetry GRPC traces
       enabled: true
-      # -- GRPC receiver advanced config
       receiverConfig: {}
 
 storage:
   trace:
-    # Settings for the block storage backend and buckets.
     block:
-      # -- The supported block versions are v2 and vParquet, as specified in https://grafana.com/docs/tempo/latest/configuration/parquet/
       version: vParquet
-    # -- The supported storage backends are gcs, s3 and azure, as specified in https://grafana.com/docs/tempo/latest/configuration/#storage
     backend: local
-  # Settings for the Admin client storage backend and buckets. Only valid is enterprise.enabled is true.
   admin:
-    # -- The supported storage backends are gcs, s3 and azure, as specified in https://grafana.com/docs/enterprise-traces/latest/config/reference/#admin_client_config
     backend: filesystem
