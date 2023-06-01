@@ -1,7 +1,7 @@
 apiVersion: opentelemetry.io/v1alpha1
 kind: OpenTelemetryCollector
 metadata:
-  name: demo
+  name: otel
 spec:
   config: |
     receivers:
@@ -19,14 +19,14 @@ spec:
         timeout: 10s
 
     exporters:
-      logging:
       otlp:
-        # Doc: https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter
-        endpoint: tempo-distributor.tempo:4317
+        endpoint: tempo-distributor-discovery.tempo:4317
+        tls:
+          insecure: true
 
     service:
       pipelines:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [logging]
+          exporters: [otlp]
