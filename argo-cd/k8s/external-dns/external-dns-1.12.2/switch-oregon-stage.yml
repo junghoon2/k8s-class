@@ -1,4 +1,0 @@
-serviceAccount:
-  create: true
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::886632063643:role/external-dns-irsa-role-switch-oregon

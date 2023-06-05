@@ -1,5 +1,0 @@
-Dockerfile
-.dockerignore
-docker-compose.yml
-.gitignore
-scripts
