@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "felice.fullname" . }}-config
+data:
+  prometheus.yml: |+
+    global:
+      scrape_interval: 10s # By default, scrape targets every 15 seconds.
+      scrape_timeout:  10s
+
+      external_labels:
+        monitor: 'felice-monitor'
+
+    rule_files:
+      - '/config/prometheus/rules/*.yml'
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+          - targets:
+            - felice-api:8989
+        - api_version: v2
+        - path_prefix: /api/v2
+
+    #### INTERNAL SERVICES ####
+    scrape_configs:
+      #### FELICE PUSHGW : pushgateway ####
+      - job_name: 'felice-pushgw'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ['felice-pushgw:9091']
+
+      #### FELICE MON : prometheus ####
+      - job_name: 'felice-mon'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ['felice-mon:9090']
+
+      #### FELICE BACKEND ####
+      - job_name: 'felice-api'
+        scrape_interval: 5s
+        metrics_path: /monitor/metrics
+        static_configs:
+          - targets: ['felice-api:7100']
+
+      #### FELICE LAG : BURROW ####
+      - job_name: 'consumer-lag'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ['felice-lag:8000']
+            labels:
+              instance: 'burrow'
+
+      ##########
+      ### GENERATED MONITORING CLUSTER TARGETS : NEW ###
+      ## zookeeper
+      - job_name: zookeeper
+        scrape_interval: 5s
+        file_sd_configs:
+          - files:
+            - '/config/prometheus/targets/zookeeper.yaml'
+            refresh_interval: 3m
+      
+      ## zookeeper node
+      - job_name: zookeeper_node
+        scrape_interval: 5s
+        file_sd_configs:
+          - files:
+            - '/config/prometheus/targets/zookeeper_node.yaml'
+            refresh_interval: 3m
+      
+      ## kafka
+      - job_name: kafka
+        scrape_interval: 5s
+        file_sd_configs:
+          - files:
+            - '/config/prometheus/targets/kafka.yaml'
+            refresh_interval: 3m
+      
+      ## kafka node
+      - job_name: kafka_node
+        scrape_interval: 5s
+        file_sd_configs:
+          - files:
+            - '/config/prometheus/targets/kafka_node.yaml'
+            refresh_interval: 3m
+      
+      ## schema-registry
+      - job_name: schema_registry
+        scrape_interval: 5s
+        file_sd_configs:
+          - files:
+            - '/config/prometheus/targets/schema_registry.yaml'
+            refresh_interval: 3m
+      
+      ## schema-registry node
+      - job_name: schema_registry_node
+        scrape_interval: 5s
+        file_sd_configs:
+          - files:
+            - '/config/prometheus/targets/schema_registry_node.yaml'
+            refresh_interval: 3m
+      
+      #### job : kafka_connect ####
+      - job_name: kafka_connect
+        file_sd_configs:
+          - files:
+            - /config/prometheus/targets/kafka_connect.yaml
+            refresh_interval: 5m
+
+      #### job : kafka_connect_node.yaml ####
+      - job_name: kafka_connect_node
+        file_sd_configs:
+          - files:
+            - /config/prometheus/targets/kafka_connect_node.yaml
+            refresh_interval: 5m
+
+      #### job : blackbox_exporter ####
+      - job_name: blackbox_exporter
+        metrics_path: /probe
+        params:
+          module: [tcp_connect]
+        file_sd_configs:
+          - files:
+            - /config/prometheus/targets/blackbox_exporter.yaml
+            refresh_interval: 5m
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: felice-blackbox:9115
+
+      ########## END OF CONFIG ##########
+
+  felice_external_cluster_config.yml: |+
+    cluster-configs:
+    {{- range $cluster := .Values.monitoringClusters }}
+      - cluster-name: {{ $cluster.name }}
+        cluster-type: "ZK"
+        description: {{ $cluster.description }}
+        ## kafka
+        kafka:
+          broker:
+            use-metric: true
+            hosts:
+            {{- range $i := until (int $cluster.kafka.servers) }}
+              {{- $host := printf "%s-%d.%s-hs" $cluster.kafka.hostPrefix $i $cluster.kafka.hostPrefix }}
+              {{- if $cluster.kafka.domainSuffix }}
+                {{- $host = print $host "." $cluster.kafka.domainSuffix }}
+              {{- end }}{{ if 0 }}## if $cluster.kafka.domainSuffix ##{{ end }}
+              - name: broker-{{ $i }}
+                broker-id: {{ $i }}
+                address: {{ $host }}:{{ $cluster.kafka.clientPort }}
+            {{- end }}{{ if 0 }}## range $i := until ##{{ end }}
+          {{- with $cluster.kafka.auth }}
+          auth:
+            mechanism: {{ .mechanism }}
+            protocol: {{ if eq .protocol "sasl" }}SASL_PLAINTEXT{{ else }}PLAINTEXT{{ end }}
+            credential:
+              username: {{ .username }}
+              password: {{ .password }}
+          {{- end }}
+        ## zookeeper
+        zookeeper:
+          use-metric: true
+          root-znode: {{ $cluster.name }}
+          hosts:
+          {{- range $i := until ( int $cluster.zookeeper.servers ) }}
+            {{- $host := printf "%s-%d.%s-hs" $cluster.zookeeper.hostPrefix $i $cluster.zookeeper.hostPrefix }}
+            {{- if $cluster.zookeeper.domainSuffix }}
+              {{- $host = print $host "." $cluster.zookeeper.domainSuffix }}
+            {{- end }}{{ if 0 }}## if $cluster.zookeeper.domainSuffix ##{{ end }}
+            - address: {{ $host }}:{{ $cluster.zookeeper.clientPort }}
+          {{- end }}{{ if 0 }}## range $i := until ##{{ end }}
+    {{- end }}{{ if 0 }}## range $cluster := ##{{ end }}
+
+  felice_external_admin_config.yml: |+
+    {{- with .Values.configs.admin }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+  
+  felice_external_config.yml: |+
+    {{- with .Values.configs.external }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+  
+  felice.license: |+
+    {{- with .Values.configs.license }}
+    {{ . | b64enc }}
+    {{- end }}

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dockerhub-spitharepo
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: |
+    eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsiYXV0aCI6ImMzQnBkR2hoY21Wd2J6cGtZMnR5WDNCaGRGOXpibGRWYTE5MWIwUXlYMlZyV0doNFFXMUtNbTFLUldobmEwMD0ifSwicmVnaXN0cnkuc3BpdGhhLmRldiI6eyJhdXRoIjoiYW5kemIyNW5PblJ0ZG14NGF6RWhNaUU9In19fQo=
+

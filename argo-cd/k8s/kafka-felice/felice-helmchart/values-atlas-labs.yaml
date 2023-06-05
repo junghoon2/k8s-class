@@ -1,0 +1,164 @@
+# Default values for felice.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+########## REPLICA SETTING ##########
+# currently support only 1
+replicaCount: 1
+
+########## CONTAINER IMAGE SETTING ##########
+images:
+  registry: "spitharepo"  # docker hub
+  pullPolicy: "Always"
+  
+imagePullSecrets: #[]
+  - name: "dockerhub-spitharepo"
+
+
+########## HELM NAME SETTING ##########
+nameOverride: "spitha"
+fullnameOverride: ""
+
+
+########## EXECUTION SETTING ##########
+configs:
+  ## for initial UI admin
+  # admin:
+  #   admin-id: "user1"
+  #   admin-password: "pass"
+  #   admin-role: "SYSTEM_ADMIN"
+  ## external config
+  external:
+    database:
+      type: 'in-memory'
+      address: 'kafka:9092'
+      id: 'atlas'
+    felice:
+      use-k8s: 'true'
+      rbac-on: 'true'
+      auth:
+        # Felice auth type: felice, oauth2
+        type: felice
+        felice:
+          key:
+            expire-after-millis: 3600000
+          refresh-key:
+            expire-after-millis: 7200000
+    strong-password:
+      use-strong-password: FALSE
+  volumes:
+    tsdb:
+      storage: 100Gi
+      storageClass: "efs-sc"
+    confdir:
+      storage: 1Gi
+      storageClass: "efs-sc"
+
+
+########## MONITORING CLUSTER SETTING ##########
+## for monitoring cluster config
+monitoringClusters:
+  ## first cluster setting
+  - name: "kafka"
+    description: "kafka cluster"
+    zookeeper:
+      # domainSuffix: "default.svc.cluster.local"     # 올바르게 설정되지 않으면 등록 실패로 오류가 발생할 수 있음
+      hostPrefix: "kafka-zookeeper"
+      servers: 1
+      clientPort: 2181
+      ## for auto regist
+      # auth:
+      #   module: "org.apache.zookeeper.server.auth.DigestLoginModule required"
+      #   username: "kafka"
+      #   password: "kafka-secret"
+    kafka:
+      # domainSuffix: "default.svc.cluster.local"     # 올바르게 설정되지 않으면 등록 실패로 오류가 발생할 수 있음
+      hostPrefix: "kafka"
+      servers: 1
+      clientPort: 9092
+      ## for auto regist
+      # auth:
+      #   protocol: "sasl"  ## only sasl or tls
+      #   mechanism: "SCRAM-SHA-512"
+      #   username: "admin"
+      #   password: "admin-secret"
+
+########## K8S SERVICE SETTING ##########
+service:
+  type: ClusterIP
+  # clusterIP: ""
+  ports:
+    - name: web
+      port: 8080
+      # targetPort: 8080
+      # nodePort: 32080
+    # - name: mon
+    #   port: 9090
+      # targetPort: 9090
+      # nodePort: 32090
+
+
+########## K8S RESOURCE SETTING ##########
+resources: #{}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests:
+    cpu: 1
+    memory: 2Gi
+
+########## K8S AUTOSCALE SETTING : MUST DISABLE ##########
+autoscaling:
+  enabled: false
+  # minReplicas: 1
+  # maxReplicas: 100
+  # targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+########## OTHER SETTING ##########
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: #{}
+  ## For security reasons, make the container's process owner group non-root
+  fsGroup: 1000620000  # from okd, no specific meaning
+
+securityContext: #{}
+  ## For security reasons, make the container's process owner non-root
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000620000  # from okd, no specific meaning
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

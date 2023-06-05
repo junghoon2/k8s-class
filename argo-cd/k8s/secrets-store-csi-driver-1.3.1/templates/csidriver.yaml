@@ -1,0 +1,16 @@
+apiVersion: {{ template "csidriver.apiVersion" . }}
+kind: CSIDriver
+metadata:
+  name: secrets-store.csi.k8s.io
+  labels:
+{{ include "sscd.labels" . | indent 4 }}
+spec:
+  podInfoOnMount: true
+  attachRequired: false
+  # Added in Kubernetes 1.16 with default mode of Persistent. Secrets store csi driver needs Ephermeral to be set.
+  volumeLifecycleModes: 
+  - Ephemeral
+  {{- if and (semverCompare ">=1.20-0" .Capabilities.KubeVersion.Version) .Values.tokenRequests }}
+  tokenRequests:
+    {{- toYaml .Values.tokenRequests | nindent 2 }}
+  {{- end }}

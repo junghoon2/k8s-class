@@ -1,0 +1,55 @@
+apiVersion: v1
+data:
+  jcasc-default-config.yaml: "jenkins:\n  authorizationStrategy:\n    loggedInUsersCanDoAnything:\n
+    \     allowAnonymousRead: false\n  securityRealm:\n    local:\n      allowsSignup:
+    false\n      enableCaptcha: false\n      users:\n      - id: \"${chart-admin-username}\"\n
+    \       name: \"Jenkins Admin\"\n        password: \"${chart-admin-password}\"\n
+    \ disableRememberMe: false\n  remotingSecurity:\n    enabled: true\n  mode: NORMAL\n
+    \ numExecutors: 0\n  projectNamingStrategy: \"standard\"\n  markupFormatter:\n
+    \   plainText\n  clouds:\n  - kubernetes:\n      containerCapStr: \"10\"\n      defaultsProviderTemplate:
+    \"\"\n      connectTimeout: \"5\"\n      readTimeout: \"15\"\n      jenkinsUrl:
+    \"http://jenkins.jenkins.svc.cluster.local:8080\"\n      jenkinsTunnel: \"jenkins-agent.jenkins.svc.cluster.local:50000\"\n
+    \     maxRequestsPerHostStr: \"32\"\n      name: \"kubernetes\"\n      namespace:
+    \"jenkins\"\n      serverUrl: \"https://kubernetes.default\"\n      podLabels:\n
+    \     - key: \"jenkins/jenkins-jenkins-agent\"\n        value: \"true\"\n      templates:\n
+    \       - name: default\n          label: jenkins-jenkins-agent\n          serviceAccount:
+    default\n          nodeSelector: nodetype=jenkins\n          volumes:\n            -
+    hostPathVolume:\n                hostPath: /var/run/docker.sock\n                mountPath:
+    /var/run/docker.sock\n          containers:\n            - name: python-runner\n
+    \             image: 886632063643.dkr.ecr.ap-northeast-2.amazonaws.com/python-runner\n
+    \             command: \"cat\"\n              workingDir: /home/jenkins/agent\n
+    \             ttyEnabled: true\n              privileged: false\n            -
+    name: docker\n              image: docker\n              command: \"cat\"\n              workingDir:
+    /home/jenkins/agent\n              ttyEnabled: true\n              privileged:
+    false\n            - name: jnlp\n              image: 886632063643.dkr.ecr.ap-northeast-2.amazonaws.com/python-runner:agent\n
+    \             workingDir: /home/jenkins/agent\n        \n        - name: decoder-worker\n
+    \         label: decoder-worker\n          serviceAccount: default\n          nodeSelector:
+    nodetype=jenkins\n          volumes:\n            - hostPathVolume:\n                hostPath:
+    /var/run/docker.sock\n                mountPath: /var/run/docker.sock\n          containers:\n
+    \           - name: python-runner\n              image: 886632063643.dkr.ecr.ap-northeast-2.amazonaws.com/python-runner\n
+    \             command: \"cat\"\n              workingDir: /home/jenkins/agent\n
+    \             ttyEnabled: true\n              privileged: false\n            -
+    name: docker\n              image: docker\n              command: \"cat\"\n              workingDir:
+    /home/jenkins/agent\n              ttyEnabled: true\n              privileged:
+    false\n              resourceRequestCpu: \"3.5\"\n              resourceRequestMemory:
+    \"12Gi\"\n              resourceLimitCpu: \"3.5\"\n              resourceLimitMemory:
+    \"12Gi\"\n            - name: jnlp\n              image: 886632063643.dkr.ecr.ap-northeast-2.amazonaws.com/python-runner:agent\n
+    \             workingDir: /home/jenkins/agent\n            \n        \n  crumbIssuer:\n
+    \   standard:\n      excludeClientIPFromCrumb: true\nsecurity:\n  apiToken:\n
+    \   creationOfLegacyTokenEnabled: false\n    tokenGenerationOnCreationEnabled:
+    false\n    usageStatisticsEnabled: true\nunclassified:\n  location:\n    adminAddress:
+    \n    url: http://jenkins:8080"
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: jenkins
+    meta.helm.sh/release-namespace: jenkins
+  labels:
+    app.kubernetes.io/component: jenkins-controller
+    app.kubernetes.io/instance: jenkins
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: jenkins
+    helm.sh/chart: jenkins-3.3.22
+    jenkins-jenkins-config: "true"
+  name: jenkins-jenkins-jcasc-config
+  namespace: jenkins

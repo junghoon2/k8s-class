@@ -1,0 +1,164 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "zookeeper.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "zookeeper.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "zookeeper.fullname" . }}-hs
+  replicas: {{ .Values.replicaCount }}
+  updateStrategy:
+    type: RollingUpdate 
+  podManagementPolicy: OrderedReady 
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "zookeeper.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "zookeeper.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      #### ZOOKEEPER CONTAINER ####
+      - name: {{ .Chart.Name }}
+        securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.images.registry }}/{{ .Chart.Name }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.images.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}  
+          name: client
+        - containerPort: 2888 
+          name: server
+        - containerPort: 3888 
+          name: leader-election
+        - containerPort: 7000
+          name: metric
+        - containerPort: 9100
+          name: node-metric
+        readinessProbe:
+          exec:
+            command:
+            - bash
+            - -c
+            - "[[ \"$(echo ruok | nc localhost {{ .Values.service.port }})\" == \"imok\" ]] || exit 1"
+          # timeoutSeconds: 2
+          periodSeconds: 5
+          failureThreshold: 2
+        startupProbe:
+          tcpSocket:
+            port: {{ .Values.service.port }}
+          # initialDelaySeconds: 10
+          periodSeconds: 1
+          failureThreshold: 60
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        env:
+          - name: K8S_REPLICAS
+            value: "{{ .Values.replicaCount }}"
+          - name: ZK_SERVER_HEAP
+            {{- $heap := 2000 }}
+            {{- with .Values.resources.limits }}
+              {{- with .memory }}
+                {{- $heap = . | mustRegexFind "[0-9]+" | int }}
+                {{- $unit := . | mustRegexFind "[a-zA-Z]+" | lower }}
+                {{- if eq $unit "gi" }}
+                  {{- $heap = mul $heap 1000 }}
+                {{- end }}
+                {{- $heap = div $heap 2 | min 2000 }}
+              {{- end }}
+            {{- end }}
+            value: "{{ $heap }}"
+          ## AUTH ##
+          {{- if .Values.configs.auth.enabled }}
+          - name: ZOO_AUTH__PROVIDER_1
+            value: org.apache.zookeeper.server.auth.SASLAuthenticationProvider
+          - name: ZOO_SESSION__REQUIRE__CLIENT__S__A__S__L__AUTH
+            value: "true"
+          - name: SZOO_CLIENTAUTH_SASL_MD5_ENABLE
+            value: "true"
+          # client users #
+          {{ $users := printf "user_super=\"%s\"" .Values.configs.auth.superuser.pass }}
+          {{- range .Values.configs.auth.users }}
+            {{- $users = printf "%s user_%s=\"%s\"" $users .user .pass }}
+          {{- end }}
+          - name: SZOO_CLIENTAUTH_USERS
+            value: {{ $users }}
+          # server auth #
+          {{- if .Values.configs.auth.server.enabled }}
+          - name: ZOO_QUORUM_AUTH_ENABLE__SASL
+            value: "true"
+          - name: ZOO_QUORUM_AUTH_LEARNER__REQUIRE__SASL
+            value: "true"
+          - name: ZOO_QUORUM_AUTH_SERVER__REQUIRE__SASL
+            value: "true"
+          - name: ZOO_QUORUM_AUTH_LEARNER_SASL__LOGIN__CONTEXT
+            value: QuorumLearner
+          - name: ZOO_QUORUM_AUTH_SERVER_SASL__LOGIN__CONTEXT
+            value: QuorumServer
+          - name: ZOO_QUORUM_CNXN_THREADS_SIZE
+            value: "20"
+          - name: SZOO_SERVERAUTH_SASL_MD5_ENABLE
+            value: "true"
+          # username for server-server auth
+          {{- $suser := .Values.configs.auth.server.user }}
+          - name: SZOO_SERVERAUTH_USER
+            value: {{ $suser }}
+          # password for server-server auth
+          {{- $spass := "empty" }}
+          {{- range .Values.configs.auth.users }}
+            {{- if eq .user $suser }}
+              {{ $spass = .pass }}
+            {{- end }}
+          {{- end }}
+          - name: SZOO_SERVERAUTH_PASS
+            value: {{ $spass }}
+          {{- end }}
+          {{- end }}
+          ## OTHER OPTIONS ##
+          {{- with .Values.configs.optional }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        volumeMounts:
+        - name: {{ include "zookeeper.fullname" . }}-datadir
+          mountPath: /data
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # {{- with .Values.affinity }}
+      # affinity:
+      #   {{- toYaml . | nindent 8 }}
+      # {{- end }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - {{ include "zookeeper.fullname" . }}
+              topologyKey: "kubernetes.io/hostname"
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ include "zookeeper.fullname" . }}-datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.configs.volume.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.configs.volume.storage }}

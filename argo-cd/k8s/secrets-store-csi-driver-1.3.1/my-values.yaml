@@ -1,0 +1,238 @@
+linux:
+  enabled: true
+  image:
+    repository: registry.k8s.io/csi-secrets-store/driver
+    tag: v1.3.1
+    pullPolicy: IfNotPresent
+
+  crds:
+    enabled: true
+    image:
+      repository: registry.k8s.io/csi-secrets-store/driver-crds
+      tag: v1.3.1
+      pullPolicy: IfNotPresent
+    ## Optionally override resource limits for crd hooks(jobs)
+    resources: {}
+      # requests:
+      #   cpu: "100m"
+      #   memory: "128Mi"
+      # limits:
+      #   cpu: "500m"
+      #   memory: "512Mi"
+    annotations: {}
+    podLabels: {}
+
+  ## Prevent the CSI driver from being scheduled on virtual-kubelet nodes
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: type
+                operator: NotIn
+                values:
+                  - virtual-kubelet
+
+  driver:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 200Mi
+      requests:
+        cpu: 50m
+        memory: 100Mi
+
+  registrarImage:
+    repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
+    tag: v2.7.0
+    pullPolicy: IfNotPresent
+
+  registrar:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 20Mi
+    logVerbosity: 5
+
+  livenessProbeImage:
+    repository: registry.k8s.io/sig-storage/livenessprobe
+    tag: v2.9.0
+    pullPolicy: IfNotPresent
+
+  livenessProbe:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 20Mi
+
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+
+  kubeletRootDir: /var/lib/kubelet
+  providersDir: /var/run/secrets-store-csi-providers
+  additionalProvidersDirs:
+    - /etc/kubernetes/secrets-store-csi-providers
+  nodeSelector: {}
+  # ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  # An empty key with operator Exists matches all keys, values and effects which means this will tolerate everything.
+  tolerations:
+    - operator: "Exists"
+  metricsAddr: ":8095"
+  env: []
+  priorityClassName: ""
+  daemonsetAnnotations: {}
+  podAnnotations: {}
+  podLabels: {}
+
+  # volumes is a list of volumes made available to secrets store csi driver.
+  volumes: null
+  #   - name: foo
+  #     emptyDir: {}
+
+  # volumeMounts is a list of volumeMounts for secrets store csi driver.
+  volumeMounts: null
+  #   - name: foo
+  #     mountPath: /bar
+  #     readOnly: true
+
+windows:
+  enabled: false
+  image:
+    repository: registry.k8s.io/csi-secrets-store/driver
+    tag: v1.3.1
+    pullPolicy: IfNotPresent
+
+  ## Prevent the CSI driver from being scheduled on virtual-kubelet nodes
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: type
+                operator: NotIn
+                values:
+                  - virtual-kubelet
+
+  driver:
+    resources:
+      limits:
+        cpu: 400m
+        memory: 400Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+
+  registrarImage:
+    repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
+    tag: v2.7.0
+    pullPolicy: IfNotPresent
+
+  registrar:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 200Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+    logVerbosity: 5
+
+  livenessProbeImage:
+    repository: registry.k8s.io/sig-storage/livenessprobe
+    tag: v2.9.0
+    pullPolicy: IfNotPresent
+
+  livenessProbe:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 200Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+
+  kubeletRootDir: C:\var\lib\kubelet
+  providersDir: C:\\k\\secrets-store-csi-providers
+  additionalProvidersDirs:
+  nodeSelector: {}
+  # ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  # An empty key with operator Exists matches all keys, values and effects which means this will tolerate everything.
+  tolerations:
+    - operator: "Exists"
+  metricsAddr: ":8095"
+  env: []
+  priorityClassName: ""
+  daemonsetAnnotations: {}
+  podAnnotations: {}
+  podLabels: {}
+
+  # volumes is a list of volumes made available to secrets store csi driver.
+  volumes: null
+  #   - name: foo
+  #     emptyDir: {}
+
+  # volumeMounts is a list of volumeMounts for secrets store csi driver.
+  volumeMounts: null
+  #   - name: foo
+  #     mountPath: /bar
+  #     readOnly: true
+
+# log level. Uses V logs (klog)
+logVerbosity: 0
+
+# logging format JSON
+logFormatJSON: false
+
+livenessProbe:
+  port: 9808
+  logLevel: 2
+
+## Maximum size in bytes of gRPC response from plugins
+maxCallRecvMsgSize: 4194304
+
+## Install Default RBAC roles and bindings
+rbac:
+  install: true
+  pspEnabled: false
+
+## Install RBAC roles and bindings required for K8S Secrets syncing if true
+syncSecret:
+  enabled: false
+
+## Enable secret rotation feature [alpha]
+enableSecretRotation: false
+
+## Secret rotation poll interval duration
+rotationPollInterval:
+
+## Provider HealthCheck
+providerHealthCheck: false
+
+## Provider HealthCheck interval
+providerHealthCheckInterval: 2m
+
+imagePullSecrets: []
+
+## This allows CSI drivers to impersonate the pods that they mount the volumes for.
+# refer to https://kubernetes-csi.github.io/docs/token-requests.html for more details.
+# Supported only for Kubernetes v1.20+
+tokenRequests: []
+# - audience: aud1
+# - audience: aud2
+
+# -- Labels to apply to all resources
+commonLabels: {}
+# team_name: dev

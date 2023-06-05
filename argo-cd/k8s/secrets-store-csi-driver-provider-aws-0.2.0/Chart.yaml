@@ -1,0 +1,17 @@
+apiVersion: v2
+description: A Helm chart for the AWS Secrets Manager and Config Provider for Secret
+  Store CSI Driver
+home: https://github.com/aws/secrets-store-csi-driver-provider-aws
+icon: https://raw.githubusercontent.com/aws/eks-charts/master/docs/logo/aws.png
+keywords:
+- eks
+- secrets-store-csi-driver
+- csi
+- aws
+- secrets manager
+kubeVersion: '>=1.17.0-0'
+name: secrets-store-csi-driver-provider-aws
+sources:
+- https://github.com/aws/secrets-store-csi-driver-provider-aws
+type: application
+version: 0.2.0

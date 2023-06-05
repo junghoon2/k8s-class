@@ -1,0 +1,11 @@
+slack:
+  enabled: true
+  channel: "infra-test"
+  token: "xoxb-10250200485-5074710024519-djd0946L7rNKBM7h7wA7TdtP"
+resourcesToWatch:
+  deployment: true
+  pod: true
+  persistentvolume: true
+  event: true
+rbac:
+  create: true
