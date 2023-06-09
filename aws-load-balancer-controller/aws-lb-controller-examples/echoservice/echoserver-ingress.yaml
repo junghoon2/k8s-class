@@ -6,22 +6,22 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/group.name: my-alb-group
+    alb.ingress.kubernetes.io/group.name: switch-singpore-test-alb-group
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:XXXXXXXXXX:certificate/XXXXXXXX
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-1:886632063643:certificate/c53d97a0-4494-4228-8e4b-a33acaf4b145
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/actions.rule-echoserver: >
       {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"200","messageBody":"Path is /"}}
 spec:
   ingressClassName: alb
   rules:
-    - host: www.example.com
-      http:
-        paths:
-          - path: /echo-server
-            pathType: Prefix
-            backend:
-              service:
-                name: echoserver
-                port:
-                  number: 80
+  - host: test.ap-northeast-2.switchboard.pro
+    http:
+      paths:
+      - path: /echo-server
+        pathType: Prefix
+        backend:
+          service:
+            name: echoserver
+            port:
+              number: 80
