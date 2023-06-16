@@ -1,0 +1,20 @@
+replicas: 2
+
+controller:
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 1
+      memory: 1Gi
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/KarpenterIRSA-singapore-test-20230522100144136800000006
+
+settings:
+  aws:
+    clusterEndpoint: https://123456789012.gr7.ap-southeast-1.eks.amazonaws.com
+    clusterName: singapore-test
+    defaultInstanceProfile: Karpenter-singapore-test-20230522100145161300000009
+    interruptionQueueName: Karpenter-singapore-test
