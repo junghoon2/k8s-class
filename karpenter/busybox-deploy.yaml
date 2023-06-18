@@ -4,7 +4,7 @@ metadata:
   name: busybox
   namespace: default
 spec:
-  replicas: 5
+  replicas: 4
   selector:
     matchLabels:
       app: busybox # POD label과 일치
