@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpcserver
+  namespace: grpcserver
+spec:
+  selector:
+    matchLabels:
+      app: grpcserver
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grpcserver
+    spec:
+      containers:
+      - name: grpc-demo
+        image: 00123456789.dkr.ecr.ap-northeast-2.amazonaws.com/devops-go-grpc-greeter-server #<------- Change to the URI that the Docker image is pushed to
+        imagePullPolicy: Always
+        ports:
+        - name: grpc-api
+          containerPort: 9000
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+      restartPolicy: Always
