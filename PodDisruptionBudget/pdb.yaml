@@ -1,10 +1,10 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: busybox
+  name: nginx
   namespace: default
 spec:
-  maxUnavailable: 1
+  minAvailable: 1
   selector:
     matchLabels:
-      app: busybox
+      app: nginx
