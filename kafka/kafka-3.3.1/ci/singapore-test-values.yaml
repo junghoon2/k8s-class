@@ -1,3 +1,4 @@
+replicaCount: 3
 rbac:
   create: true
 metrics:
