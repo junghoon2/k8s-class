@@ -1,0 +1,31 @@
+grafana:
+  defaultDashboardsTimezone: Asia/Seoul
+  adminPassword: prom-operator
+  ingress:
+    enabled: true
+    ingressClassName: alb
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+      alb.ingress.kubernetes.io/certificate-arn: $CERTIFICATE_ARN
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/group.name: monitoring
+      external-dns.alpha.kubernetes.io/hostname: $DOMAIN_NAME
+    hosts:
+    - $DOMAIN_NAME
+    paths:
+    - /*
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    retention: 5d
+    retentionSize: "10GiB"
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ebs-sc
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
