@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: default
+  labels:
+    app: nginxhello
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginxhello
+  template:
+    metadata:
+      labels:
+        app: nginxhello
+    spec:
+      containers:
+      - name: nginxhello
+        image: registry.k8s.io/e2e-test-images/echoserver:2.3
+        ports:
+        - containerPort: 8080
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginxhello
+  namespace: default
+  labels:
+    app: nginxhello
+spec:
+  selector:
+    app: nginxhello
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginxhello-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: test-ap-southeast-1."MyDomain"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginxhello
+            port:
+              number: 80
