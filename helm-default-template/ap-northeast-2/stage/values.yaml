@@ -3,20 +3,18 @@ image:
   pullPolicy: Always
   tag: "latest" # 레포에서 사용하는 태그를 써주세요 e.g. v0.0.1
 
-env:
-  {}
-  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
-  # e.g.
-  # SERVER_PORT: 8080
-  # SERVER_HOST: atlas-default
-  # ...
+env: {}
+# 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+# e.g.
+# SERVER_PORT: 8080
+# SERVER_HOST: atlas-default
+# ...
 
-secrets:
-  {}
-  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
-  # e.g.
-  # PostgreSQL_PASSWORD: cGFzc3dvcmQ=
-  # ...
+secrets: {}
+# 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+# e.g.
+# PostgreSQL_PASSWORD: cGFzc3dvcmQ=
+# ...
 
 terminationGracePeriodSeconds: 30
 
@@ -51,7 +49,7 @@ securityContext:
   privileged: false
   capabilities:
     drop:
-      - ALL
+    - ALL
   readOnlyRootFilesystem: true
 
 # Networking
@@ -64,16 +62,16 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+  - host: chart-example.local
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
   tls: []
 
 # Conatiner resources
 resources:
   limits:
-    # memory: 128Mi
+  # memory: 128Mi
   requests:
     cpu: 100m
     memory: 128Mi
