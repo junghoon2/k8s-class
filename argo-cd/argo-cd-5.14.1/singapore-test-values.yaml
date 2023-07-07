@@ -6,13 +6,13 @@ server:
     annotations:
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
-      alb.ingress.kubernetes.io/group.name: switch-singpore-test-alb-group
+      alb.ingress.kubernetes.io/group.name: singapore-test
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
       alb.ingress.kubernetes.io/ssl-redirect: "443"
-      external-dns.alpha.kubernetes.io/hostname: argocd.myweb.com
+      external-dns.alpha.kubernetes.io/hostname: $ARGOCD_DOMAIN
     ingressClassName: "alb"
     hosts:
-    - argocd.myweb.com
+    - $ARGOCD_DOMAIN
     paths:
     - /
 configs:
@@ -21,7 +21,7 @@ configs:
       url: git@github.com:junghoon2
       sshPrivateKey: |
         -----BEGIN OPENSSH PRIVATE KEY-----
-        XXXXXXXXXXXXX
+        xxxxxxxxxxx
         -----END OPENSSH PRIVATE KEY-----
   repositories:
     k8s-class:
