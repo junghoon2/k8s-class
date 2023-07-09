@@ -1,4 +1,4 @@
 serviceAccount:
-  create: false
+  create: true
   name: aws-load-balancer-controller
-clusterName: my-cluster
+clusterName: $CLUSTER_NAME
