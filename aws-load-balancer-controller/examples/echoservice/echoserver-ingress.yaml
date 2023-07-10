@@ -9,11 +9,12 @@ metadata:
     alb.ingress.kubernetes.io/group.name: switch-singpore-test-alb-group
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
-    external-dns.alpha.kubernetes.io/hostname: test-01.ap-southeast-1.testweb.com
+    alb.ingress.kubernetes.io/certificate-arn: $CERTIFICATE_ARN
+    external-dns.alpha.kubernetes.io/hostname: $INGRESS_HOST
 spec:
   ingressClassName: alb
   rules:
-  - host: test-01.ap-southeast-1.testweb.com
+  - host: $INGRESS_HOST
     http:
       paths:
       - path: /echo-server
