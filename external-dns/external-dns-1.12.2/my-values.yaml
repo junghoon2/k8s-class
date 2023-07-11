@@ -2,4 +2,3 @@ serviceAccount:
   create: true
   annotations:
     eks.amazonaws.com/role-arn: $EXTERNAL_DNS_ROLE_ARN
-
