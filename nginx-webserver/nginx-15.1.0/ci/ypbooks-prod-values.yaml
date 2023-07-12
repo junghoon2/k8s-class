@@ -1,0 +1,11 @@
+replicaCount: 2
+service:
+  type: ClusterIP
+ingress:
+  enabled: true
+  hostname: new.ypbooks.co.kr
+  path: /nginx
+  ingressClassName: "nginx"
+  tls: false
+metrics:
+  enabled: true
