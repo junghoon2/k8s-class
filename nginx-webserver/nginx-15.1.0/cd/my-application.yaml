@@ -15,7 +15,7 @@ spec:
       valueFiles:
       - ci/my-values.yaml
     path: nginx-webserver/nginx-15.1.0
-    repoURL: https://gitlab.ypbooks.co.kr/junghoon/k8s-class.git
+    repoURL: https://github.com/junghoon2/k8s-class.git
     targetRevision: HEAD
   syncPolicy:
     automated:
