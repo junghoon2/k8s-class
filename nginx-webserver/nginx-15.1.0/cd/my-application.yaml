@@ -13,9 +13,9 @@ spec:
   source:
     helm:
       valueFiles:
-      - ci/ypbooks-prod-values.yaml
-    path: nginx/nginx-15.1.0
-    repoURL: https://gitlab.ypbooks.co.kr/ypbooks/ypbooks.git
+      - ci/my-values.yaml
+    path: nginx-webserver/nginx-15.1.0
+    repoURL: https://gitlab.ypbooks.co.kr/junghoon/k8s-class.git
     targetRevision: HEAD
   syncPolicy:
     automated:
