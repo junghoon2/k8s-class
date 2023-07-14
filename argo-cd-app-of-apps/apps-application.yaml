@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: argo-cd-app-of-apps
+    repoURL: git@github.com:junghoon2/k8s-class.git
+    targetRevision: HEAD
