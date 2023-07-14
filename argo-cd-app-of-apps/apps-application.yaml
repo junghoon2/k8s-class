@@ -12,3 +12,10 @@ spec:
     path: argo-cd-app-of-apps
     repoURL: git@github.com:junghoon2/k8s-class.git
     targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - Validate=false
