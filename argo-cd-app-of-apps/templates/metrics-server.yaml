@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kube-system
+    server: {{ .Values.spec.destination.server }}
+    path: metrics-server-3.10.0
+    helm:
+      valueFiles:
+      - values.yaml
+  project: default
+  source:
+    path: helm-guestbook
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
