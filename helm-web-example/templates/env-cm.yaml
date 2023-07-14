@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-## foo -> helm 차트 이름으로 변경
-  name: {{ include "web.fullname" . }}-env
-data:
-{{- range $key, $val := .Values.env }}
-{{ $key | indent 2 }}: {{ $val | quote }}
-{{- end}}

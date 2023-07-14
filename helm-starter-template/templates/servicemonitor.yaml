@@ -2,11 +2,11 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "default-template.fullname" . }}
+  name: {{ include "atlas-default-template.fullname" . }}
 spec:
   selector:
     matchLabels:
-      {{- include "default-template.selectorLabels" . | nindent 6 }}
+      {{- include "atlas-default-template.selectorLabels" . | nindent 6 }}
   endpoints:
   - port: http
     path: {{ .Values.metrics.path }}

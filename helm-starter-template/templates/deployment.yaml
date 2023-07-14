@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "default-template.fullname" . }}
+  name: {{ include "atlas-default-template.fullname" . }}
   labels:
-    {{- include "default-template.labels" . | nindent 4 }}
+    {{- include "atlas-default-template.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "default-template.selectorLabels" . | nindent 6 }}
+      {{- include "atlas-default-template.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,16 +18,15 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "default-template.selectorLabels" . | nindent 8 }}
+        {{- include "atlas-default-template.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "default-template.serviceAccountName" . }}
+      serviceAccountName: {{ include "atlas-default-template.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -52,14 +51,10 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          envFrom:
           {{- if .Values.env }}
+          envFrom:
             - configMapRef:
-                name: {{ include "default-template.fullname" . }}-env
-          {{- end }}
-          {{- if .Values.secrets }}
-            - secretRef:
-                name: {{ include "default-template.fullname" . }}-secret
+                name: {{ include "atlas-default-template.fullname" . }}-env
           {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
