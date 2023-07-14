@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ include "atlas-default-template.fullname" . }}-test-connection"
+  name: "{{ include "foo.fullname" . }}-test-connection"
   labels:
-    {{- include "atlas-default-template.labels" . | nindent 4 }}
+    {{- include "foo.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": test
 spec:
@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "atlas-default-template.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "foo.fullname" . }}:{{ .Values.service.port }}']
   restartPolicy: Never

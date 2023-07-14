@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "atlas-default-template.fullname" . }}
+  name: {{ include "foo.fullname" . }}
   labels:
-    {{- include "atlas-default-template.labels" . | nindent 4 }}
+    {{- include "foo.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "atlas-default-template.selectorLabels" . | nindent 6 }}
+      {{- include "foo.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "atlas-default-template.selectorLabels" . | nindent 8 }}
+        {{- include "foo.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "atlas-default-template.serviceAccountName" . }}
+      serviceAccountName: {{ include "foo.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -54,7 +54,7 @@ spec:
           {{- if .Values.env }}
           envFrom:
             - configMapRef:
-                name: {{ include "atlas-default-template.fullname" . }}-env
+                name: {{ include "foo.fullname" . }}-env
           {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
