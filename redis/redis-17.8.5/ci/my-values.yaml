@@ -1,0 +1,13 @@
+architecture: replication
+auth:
+  enabled: false
+master:
+  count: 1
+replica:
+  replicaCount: 2
+sentinel:
+  enabled: false
+metrics:
+  enabled: true
+sysctl:
+  enabled: true

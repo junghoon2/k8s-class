@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-client
+  labels:
+    app: redis-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-client  # POD label과 일치
+  template:    
+    metadata:
+      labels:
+        app: redis-client # Selector label과 일치
+    spec:
+      containers:
+      - name: busybox
+        image: docker.io/bitnami/redis:6.2.6-debian-10-r120
+        command:
+        - "/bin/sh"
+        - "-c"
+        - "sleep inf"
