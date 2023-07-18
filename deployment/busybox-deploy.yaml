@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox
+  labels:
+    app: busybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox
+  template:    
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      # hostAliases:
+      # - ip: "172.17.28.160"
+      #   hostnames:
+      #   - "harbor.spk.io"
+      containers:
+      - name: busybox
+        image: busybox
+        # image: harbor.spk.io/spk/busybox
+        # command:
+        # - "/bin/sh"
+        # - "-c"
+        # - "sleep inf"
+        command: ["sh"]
+        args: ["-c", "sleep inf"]        
+        # resources:
+        #   limits:
+        #     cpu: 1500m
+        #     memory: 512Mi
+        #   requests:
+        #     cpu: 1500m
+        #     memory: 128Mi
+      # affinity:
+      #   podAntiAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #     - labelSelector:
+      #         matchExpressions:
+      #         - key: app
+      #           operator: In
+      #           values:
+      #           - busybox
+      #       topologyKey: "kubernetes.io/hostname"
