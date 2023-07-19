@@ -19,7 +19,7 @@ module "external_dns_irsa_role" {
 
   role_name                     = "external-dns"
   attach_external_dns_policy    = true
-  external_dns_hosted_zone_arns = ["arn:aws:route53:::hostedzone/XXXXXXXXX"]
+  external_dns_hosted_zone_arns = ["arn:aws:route53:::hostedzone/{HOSTED_ZONE_ID}"]
 
   oidc_providers = {
     ex = {
@@ -29,6 +29,10 @@ module "external_dns_irsa_role" {
   }
 
   tags = local.tags
+
+  ignore_changes = [
+    external_dns_hosted_zone_arns
+  ]
 }
 
 module "ebs_csi_irsa_role" {
