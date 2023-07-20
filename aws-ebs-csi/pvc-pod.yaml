@@ -10,9 +10,9 @@ spec:
     command: ["/bin/sh"]
     args: ["-c", "while true; do echo $(date -u) >> /data/out.txt; sleep 5; done"]
     volumeMounts:
-    - name: persistent-storage
+    - name: date-vol
       mountPath: /data
   volumes:
-  - name: persistent-storage
+  - name: date-vol
     persistentVolumeClaim:
       claimName: ebs-claim
