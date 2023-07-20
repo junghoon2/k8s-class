@@ -14,6 +14,6 @@ spec:
     path: metrics-server-3.10.0
     helm:
       valueFiles:
-      - values.yaml
+      - ci/values.yaml
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}
