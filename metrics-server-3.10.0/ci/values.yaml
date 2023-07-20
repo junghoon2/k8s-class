@@ -1,0 +1,2 @@
+apiService:
+  insecureSkipTLSVerify: true
