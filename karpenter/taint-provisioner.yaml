@@ -13,7 +13,7 @@ spec:
     value: webrtc
   # Labels are arbitrary key-values that are applied to all nodes
   labels:
-    nodetype: webrtc
+    node: webrtc
   # Requirements that constrain the parameters of provisioned nodes.
   # These requirements are combined with pod.spec.affinity.nodeAffinity rules.
   # Operators { In, NotIn } are supported to enable including or excluding values
