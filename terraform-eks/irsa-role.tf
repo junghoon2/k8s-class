@@ -29,10 +29,6 @@ module "external_dns_irsa_role" {
   }
 
   tags = local.tags
-
-  ignore_changes = [
-    external_dns_hosted_zone_arns
-  ]
 }
 
 module "ebs_csi_irsa_role" {

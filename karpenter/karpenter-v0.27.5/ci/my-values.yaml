@@ -3,15 +3,14 @@ replicas: 1
 controller:
   resources:
     limits:
-      cpu: 1
       memory: 1Gi
     requests:
-      cpu: 1
+      cpu: 800m
       memory: 1Gi
 
 serviceAccount:
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::12345678:role/KarpenterIRSA-singapore-test-20230522100144136800000006
+    eks.amazonaws.com/role-arn: ${ROLE_ARN}
 
 settings:
   aws:
