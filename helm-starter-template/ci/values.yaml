@@ -4,17 +4,17 @@ image:
   tag: "latest" # 이미지 태그를 지정합니다.
 
 env: {}
-# 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
-# e.g.
-# SERVER_PORT: 8080
-# SERVER_HOST: atlas-default
-# ...
+  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+  # e.g.
+  # SERVER_PORT: 8080
+  # SERVER_HOST: default
+  # ...
 
 secrets: {}
-# 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
-# e.g.
-# PostgreSQL_PASSWORD: cGFzc3dvcmQ=
-# ...
+  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+  # e.g.
+  # PostgreSQL_PASSWORD: cGFzc3dvcmQ=
+  # ...
 
 terminationGracePeriodSeconds: 30
 
