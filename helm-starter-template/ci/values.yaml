@@ -1,7 +1,7 @@
 image:
-  repository: pengbai/docker-supermario # 이미지 레포 주소를 입력하세요. e.g. XXXXXXXX.dkr.ecr.ap-northeast-2.amazonaws.com
+  repository: pengbai/docker-supermario
   pullPolicy: Always
-  tag: "latest" # 레포에서 사용하는 태그를 써주세요 e.g. v0.0.1
+  tag: "latest" # 이미지 태그를 지정합니다.
 
 env: {}
 # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
@@ -19,8 +19,8 @@ secrets: {}
 terminationGracePeriodSeconds: 30
 
 metrics:
-  enabled: false # true로 바꾸면 /metrics로 메트릭스를 노출합니다
-  path: /metrics # 메트릭스 경로를 바꿀 수 있습니다
+  enabled: false # 메트릭을 사용할지 결정합니다
+  path: /metrics # 메트릭 경로를 지정합니다.
 
 probes:
   liveness:
@@ -55,7 +55,7 @@ securityContext:
 # Networking
 service:
   type: ClusterIP
-  port: 8080
+  port: 80
 
 ingress:
   enabled: false
@@ -73,7 +73,7 @@ resources:
   limits:
   # memory: 128Mi
   requests:
-    cpu: 100m
+    cpu: 10m
     memory: 128Mi
 
 # HPA
