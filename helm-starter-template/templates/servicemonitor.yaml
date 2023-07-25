@@ -2,11 +2,11 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "foo.fullname" . }}
+  name: {{ include "<CHARTNAME>.fullname" . }}
 spec:
   selector:
     matchLabels:
-      {{- include "foo.selectorLabels" . | nindent 6 }}
+      {{- include "<CHARTNAME>.selectorLabels" . | nindent 6 }}
   endpoints:
   - port: http
     path: {{ .Values.metrics.path }}

@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "foo.fullname" . }}-env
+  name: {{ include "<CHARTNAME>.fullname" . }}-env
 data:
 {{- range $key, $val := .Values.env }}
 {{ $key | indent 2 }}: {{ $val | quote }}
