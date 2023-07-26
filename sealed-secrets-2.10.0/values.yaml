@@ -8,7 +8,7 @@ kubeVersion: ""
 nameOverride: ""
 ## @param fullnameOverride String to fully override sealed-secrets.fullname
 ##
-fullnameOverride: ""
+fullnameOverride: "sealed-secrets-controller"
 ## @param namespace Namespace where to deploy the Sealed Secrets controller
 ##
 namespace: ""
@@ -167,7 +167,7 @@ containerSecurityContext:
   runAsUser: 1001
   capabilities:
     drop:
-      - ALL
+    - ALL
 
 ## @param podLabels [object] Extra labels for Sealed Secret pods
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
