@@ -3,7 +3,7 @@ image:
   pullPolicy: Always
   tag: "latest" # 이미지 태그를 지정합니다.
 
-env:
+envs:
   SERVER_PORT: 8080
 
 secrets:
