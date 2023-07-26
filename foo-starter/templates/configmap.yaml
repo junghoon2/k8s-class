@@ -1,10 +1,10 @@
-{{- if .Values.secrets }}
+{{- if .Values.env }}
 apiVersion: v1
-kind: Secret
+kind: ConfigMap
 metadata:
-  name: {{ include "foo-starter.fullname" . }}-secret
+  name: {{ include "foo-starter.fullname" . }}-env
 data:
-{{- range $key, $val := .Values.secrets }}
+{{- range $key, $val := .Values.env }}
 {{ $key | indent 2 }}: {{ $val | quote }}
 {{- end}}
 {{- end}}

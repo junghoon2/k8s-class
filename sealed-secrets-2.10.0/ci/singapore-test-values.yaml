@@ -1,3 +1,5 @@
+fullnameOverride: "sealed-secrets-controller"
+
 image:
   registry: docker.io
   repository: bitnami/sealed-secrets-controller
