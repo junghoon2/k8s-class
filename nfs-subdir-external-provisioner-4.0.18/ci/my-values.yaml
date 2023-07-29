@@ -1,0 +1,13 @@
+nfs:
+  server: nfs-server
+  path: /exports
+  mountOptions:
+  volumeName: nfs-subdir-external-provisioner-root
+  reclaimPolicy: Retain
+
+storageClass:
+  create: true
+  defaultClass: false
+  name: nfs-client
+  allowVolumeExpansion: true
+  reclaimPolicy: Delete

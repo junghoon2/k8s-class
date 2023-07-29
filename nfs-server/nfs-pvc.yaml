@@ -1,13 +1,13 @@
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nfs-server
-  namespace: nfs
+  name: nfs
+  namespace: default
 spec:
   accessModes:
-  - ReadWriteOnce
-  storageClassName: "longhorn"
+  - ReadWriteMany
+  storageClassName: ""
   resources:
     requests:
-      storage: 500Gi
+      storage: 1Gi
+  volumeName: nfs
