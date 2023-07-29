@@ -15,8 +15,8 @@ image:
 # For a list of available arguments
 # Please see https://github.com/kubernetes-incubator/external-storage/blob/HEAD/nfs/docs/deployment.md#arguments
 extraArgs: {}
-  # device-based-fsids: false
-  # grace-period: 0
+# device-based-fsids: false
+# grace-period: 0
 
 service:
   type: ClusterIP
@@ -81,9 +81,9 @@ storageClass:
   parameters: {}
 
   mountOptions:
-    - vers=3
-    - retrans=2
-    - timeo=30
+  - vers=3
+  - retrans=2
+  - timeo=30
 
   ## ReclaimPolicy field of the class, which can be either Delete or Retain
   reclaimPolicy: Delete
@@ -99,8 +99,8 @@ rbac:
 securityContext:
   capabilities:
     add:
-      - DAC_READ_SEARCH
-      - SYS_RESOURCE
+    - DAC_READ_SEARCH
+    - SYS_RESOURCE
 
 ## For creating the PriorityClass automatically:
 priorityClass:
@@ -114,12 +114,12 @@ priorityClass:
   value: 5
 
 resources: {}
-  # limits:
-  #  cpu: 100m
-  #  memory: 128Mi
-  # requests:
-  #  cpu: 100m
-  #  memory: 128Mi
+# limits:
+#  cpu: 100m
+#  memory: 128Mi
+# requests:
+#  cpu: 100m
+#  memory: 128Mi
 
 nodeSelector: {}
 
