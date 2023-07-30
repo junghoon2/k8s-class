@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-mariadb
+  namespace: mariadb-restore
+spec:
+  schedule: "* * * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup-mariadb
+            image: docker.io/bitnami/mariadb-galera:10.6.12-debian-11-r11
+            command: ["/bin/sh"]
+            args: ["-c", "mysqldump -h mariadb-mariadb-galera.mariadb -u root -pMjId1vsl8E70 --all-databases > /backup-vol/tdb-$(date +%Y%m%d%H%M).sql"]
+            volumeMounts:
+            - name: backup-vol
+              mountPath: /backup-vol
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-vol
+            persistentVolumeClaim:
+              claimName: mariadb-backup-pvc

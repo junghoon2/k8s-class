@@ -8,8 +8,8 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mariadb-client  # POD label과 일치
-  template:    
+      app: mariadb-client # POD label과 일치
+  template:
     metadata:
       labels:
         app: mariadb-client # Selector label과 일치

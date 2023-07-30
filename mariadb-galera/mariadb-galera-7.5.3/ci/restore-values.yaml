@@ -1,6 +1,3 @@
-service:
-  type: LoadBalancer
-  loadBalancerIP: "192.168.1.164"
 rootUser:
   password: "MjId1vsl8E70"
 galera:
@@ -11,3 +8,10 @@ persistence:
   storageClass: "openebs-hostpath"
 metrics:
   enabled: true
+extraVolumes:
+- name: mariadb-backup
+  persistentVolumeClaim:
+    claimName: mariadb-backup-pvc
+extraVolumeMounts:
+- name: mariadb-backup
+  mountPath: /backup-vol
