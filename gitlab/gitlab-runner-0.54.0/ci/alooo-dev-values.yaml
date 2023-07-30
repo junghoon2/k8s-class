@@ -1,0 +1,14 @@
+gitlabUrl: http://gitlab-webservice-default:8181/
+runnerToken: "${CI_RUNNER_TOKEN}"
+certsSecretName: passmate-tls
+rbac:
+  create: true
+metrics:
+  enabled: true
+runners:
+  config: |
+    [[runners]]
+      environment = ["GIT_SSL_NO_VERIFY=1"]
+      [runners.kubernetes]
+        namespace = "{{.Release.Namespace}}"
+        image = "ubuntu:22.04"

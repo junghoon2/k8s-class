@@ -1,0 +1,22 @@
+global:
+  edition: ee
+  hosts:
+    domain: passmate.me
+  ingress:
+    apiVersion: ""
+    configureCertmanager: false
+    class: nginx
+    tls:
+      enabled: true
+      secretName: passmate-tls
+  time_zone: Asia/Seoul
+certmanager-issuer:
+  email: jerry@travelai.io
+certmanager:
+  installCRDs: false
+nginx-ingress:
+  enabled: false
+prometheus:
+  install: false
+gitlab-runner:
+  install: false
