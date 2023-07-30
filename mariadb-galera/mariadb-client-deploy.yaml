@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb-client
+  labels:
+    app: mariadb-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb-client  # POD label과 일치
+  template:    
+    metadata:
+      labels:
+        app: mariadb-client # Selector label과 일치
+    spec:
+      containers:
+      - name: mariadb
+        image: docker.io/bitnami/mariadb-galera:10.6.12-debian-11-r11
+        command:
+        - "/bin/sh"
+        - "-c"
+        - "sleep inf"

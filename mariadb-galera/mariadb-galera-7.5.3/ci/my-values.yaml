@@ -1,0 +1,12 @@
+service:
+  type: LoadBalancer
+  loadBalancerIP: "192.168.1.164"
+rootUser:
+  password: "MjId1vsl8E70"
+galera:
+  mariabackup:
+    password: "xvK7VLd5Vm%"
+persistence:
+  size: 50Gi
+metrics:
+  enabled: true
