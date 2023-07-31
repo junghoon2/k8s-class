@@ -4,7 +4,7 @@ metadata:
   name: backup-mariadb
   namespace: mariadb-restore
 spec:
-  schedule: "* * * * *"
+  schedule: "0 3 * * 1" # Every Monday at 3:00 AM
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
