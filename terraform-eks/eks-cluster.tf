@@ -101,7 +101,7 @@ module "eks" {
 
   eks_managed_node_groups = {
     base = {
-      name            = "base"
+      name            = "karpenter"
       use_name_prefix = false
 
       instance_types = ["t3.large", "t3a.large", "m6i.large"]
