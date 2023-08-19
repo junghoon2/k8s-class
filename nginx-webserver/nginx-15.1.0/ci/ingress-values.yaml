@@ -1,0 +1,19 @@
+replicaCount: 1
+service:
+  type: ClusterIP
+ingress:
+  enabled: true
+  hostname: nginx-ap-southeast-1.switchboard.pro
+  path: /
+  ingressClassName: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: singapore-test
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-1:886632063643:certificate/a19cec5f-178a-4eff-9f68-242e48d79d34
+    external-dns.alpha.kubernetes.io/hostname: nginx-ap-southeast-1.switchboard.pro
+  tls: false
+metrics:
+  enabled: true
