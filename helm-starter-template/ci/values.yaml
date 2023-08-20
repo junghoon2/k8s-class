@@ -16,6 +16,10 @@ secrets: {}
   # PostgreSQL_PASSWORD: cGFzc3dvcmQ=
   # ...
 
+# Networking
+container:
+  port: 8080
+
 terminationGracePeriodSeconds: 30
 
 metrics:
@@ -50,11 +54,7 @@ securityContext:
   capabilities:
     drop:
     - ALL
-  readOnlyRootFilesystem: true
-
-# Networking
-container:
-  port: 8080
+  readOnlyRootFilesystem: false
 
 service:
   type: ClusterIP
