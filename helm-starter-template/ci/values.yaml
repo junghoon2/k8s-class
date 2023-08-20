@@ -24,7 +24,7 @@ pvc:
   enabled: false
   accessModes:
     - ReadWriteMany
-  storageClassName: ""
+  storageClassName: "longhorn"
   size: 10Gi
 
 terminationGracePeriodSeconds: 30
