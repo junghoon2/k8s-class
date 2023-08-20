@@ -60,6 +60,15 @@ spec:
             - secretRef:
                 name: {{ include "<CHARTNAME>.fullname" . }}-secret
           {{- end }}
+      {{- if .Values.pvc.enabled }}
+          volumeMounts:
+          - name: my-volume
+            mountPath: /data
+      volumes:
+      - name: my-volume
+        persistentVolumeClaim:
+          claimName: {{ include "<CHARTNAME>.fullname" . }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

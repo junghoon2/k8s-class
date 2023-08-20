@@ -20,6 +20,13 @@ secrets: {}
 container:
   port: 8080
 
+pvc:
+  enabled: false
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  size: 10Gi
+
 terminationGracePeriodSeconds: 30
 
 metrics:
