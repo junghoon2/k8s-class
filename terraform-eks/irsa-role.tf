@@ -14,27 +14,27 @@ module "load_balancer_controller_irsa_role" {
   tags = local.tags
 }
 
-module "external_dns_irsa_role" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+# module "external_dns_irsa_role" {
+#   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
-  role_name                     = "external-dns"
-  attach_external_dns_policy    = true
-  external_dns_hosted_zone_arns = ["arn:aws:route53:::hostedzone/{HOSTED_ZONE_ID}"]
+#   role_name                     = "external-dns"
+#   attach_external_dns_policy    = true
+#   external_dns_hosted_zone_arns = ["arn:aws:route53:::hostedzone/{HOSTED_ZONE_ID}"]
 
-  oidc_providers = {
-    ex = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:external-dns"]
-    }
-  }
+#   oidc_providers = {
+#     ex = {
+#       provider_arn               = module.eks.oidc_provider_arn
+#       namespace_service_accounts = ["kube-system:external-dns"]
+#     }
+#   }
 
-  tags = local.tags
-}
+#   tags = local.tags
+# }
 
 module "ebs_csi_irsa_role" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
-  role_name             = "ebs-csi-switch-singapore-test"
+  role_name             = "ebs-csi-switch-jerry-test"
   attach_ebs_csi_policy = true
 
   oidc_providers = {

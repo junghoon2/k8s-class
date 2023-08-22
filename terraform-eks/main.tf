@@ -18,19 +18,18 @@ data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
 
 locals {
-  name            = "singapore-test"
+  name            = "jerry-test"
   cluster_version = "1.26"
-  region          = "ap-southeast-1"
+  region          = "ap-northeast-2"
 
   vpc_cidr = "10.110.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
   tags = {
-    env  = "dev"
+    env  = "test"
     user = "jerry"
   }
 }
-
 
 resource "aws_iam_policy" "additional" {
   name = "${local.name}-additional"
