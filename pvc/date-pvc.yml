@@ -5,8 +5,9 @@ metadata:
   namespace: default
 spec:
   accessModes:
-  - ReadWriteMany
+  - ReadWriteOnce
+  # - ReadWriteMany
   resources:
     requests:
       storage: 1Gi
-  storageClassName: "longhorn"
+  storageClassName: "openebs-hostpath"
