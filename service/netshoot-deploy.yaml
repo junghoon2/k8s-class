@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: netshoot
-  namespace: default
   labels:
     app: netshoot
 spec:
@@ -10,7 +9,7 @@ spec:
   selector:
     matchLabels:
       app: netshoot
-  template:
+  template:    
     metadata:
       labels:
         app: netshoot
@@ -18,5 +17,6 @@ spec:
       containers:
       - name: netshoot
         image: nicolaka/netshoot
-        command: ["/bin/bash"]
-        args: ["-c", "while true; do ping localhost; sleep 60;done"]
+        args:
+        - sleep
+        - infinity
