@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: date-pod
+  name: date
   namespace: default
   labels:
     app: date
