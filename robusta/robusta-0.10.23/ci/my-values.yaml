@@ -1,0 +1,579 @@
+
+# most of this file is documented at https://docs.robusta.dev/master/user-guide/configuration.html
+# if you have any questions, feel free to ask via github issues or Slack (see link on robusta.dev)
+
+# NOTE: Do not use this file to install Robusta. It has missing values that need to be filled in. See the installation instructions instead https://docs.robusta.dev/master/installation.html
+
+# playbook repositories
+playbookRepos: {}
+
+# sinks configurations
+sinksConfig: []
+
+# global parameters
+clusterName: ""
+clusterZone: ""
+
+automountServiceAccountToken: true
+
+# see https://docs.robusta.dev/master/user-guide/configuration.html#global-config
+globalConfig:
+  grafana_url: ""
+  grafana_api_key: ""
+  grafana_dashboard_uid: ""
+  prometheus_url: ""
+  account_id: ""
+  signing_key: ""
+
+# see https://docs.robusta.dev/master/user-guide/configuration/additional-settings.html#relabel-prometheus-alerts
+alertRelabel: []
+
+# safe actions to enable authenticated users to run
+lightActions:
+- related_pods
+- prometheus_enricher
+- add_silence
+- delete_pod
+- delete_silence
+- get_silences
+- logs_enricher
+- pod_events_enricher
+- deployment_events_enricher
+- job_events_enricher
+- job_pod_enricher
+- get_resource_yaml
+- node_cpu_enricher
+- node_disk_analyzer
+- node_running_pods_enricher
+- node_allocatable_resources_enricher
+- node_status_enricher
+- node_graph_enricher
+- oomkilled_container_graph_enricher
+- pod_oom_killer_enricher
+- oom_killer_enricher
+- volume_analysis
+- python_profiler
+- pod_ps
+- python_memory
+- debugger_stack_trace
+- python_process_inspector
+- prometheus_alert
+- create_pvc_snapshot
+- resource_events_enricher
+- delete_job
+- list_resource_names
+- node_dmesg_enricher
+- status_enricher
+- popeye_scan
+- krr_scan
+- handle_alertmanager_event
+- drain
+- cordon
+- uncordon
+- rollout_restart
+
+# install prometheus, alert-manager, and grafana along with Robusta?
+enablePrometheusStack: false
+enableServiceMonitors: true
+monitorHelmReleases: true
+
+# disable messages routed by Robusta cloud
+disableCloudRouting: false
+
+# scale alerts processing.
+# Used to support clusters with high load of alerts. When used, the runner will consume more memory
+scaleAlertsProcessing: False
+
+# Enable loading playbooks to a persistent volume
+playbooksPersistentVolume: false
+playbooksPersistentVolumeSize: 4Gi
+
+# priority builtin playbooks for running before all playbooks
+priorityBuiltinPlaybooks:
+# playbooks for prometheus silencing
+- triggers:
+  - on_prometheus_alert:
+      status: "all"
+  actions:
+  - name_silencer:
+      names: ["Watchdog", "KubeSchedulerDown", "KubeControllerManagerDown", "InfoInhibitor"]
+
+# Silences for small/local clusters
+- triggers:
+  - on_prometheus_alert:
+      status: "all"
+      k8s_providers: ["Minikube", "Kind", "RancherDesktop"]
+  actions:
+  - name_silencer:
+      names: ["etcdInsufficientMembers", "etcdMembersDown", "NodeClockNotSynchronising", "PrometheusTSDBCompactionsFailing"]
+
+# Silences for specific providers
+- triggers:
+  - on_prometheus_alert:
+      status: "all"
+      k8s_providers: [ "GKE" ]
+  actions:
+  - name_silencer:
+      names: [ "KubeletDown" ]
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: CPUThrottlingHigh
+      k8s_providers: [ "DigitalOcean" ]
+      pod_name_prefix: "do-node-agent"
+  actions:
+  - silence_alert:
+      log_silence: true
+
+# Smart Silences
+- triggers:
+  - on_prometheus_alert:
+      alert_name: TargetDown
+  actions:
+  - target_down_dns_silencer: {}
+
+# custom user playbooks
+customPlaybooks: []
+
+# builtin playbooks
+builtinPlaybooks:
+# playbooks for non-prometheus based monitoring
+- triggers:
+  - on_pod_crash_loop:
+      restart_reason: "CrashLoopBackOff"
+  actions:
+  - report_crash_loop: {}
+
+- triggers:
+  - on_image_pull_backoff: {}
+  actions:
+  - image_pull_backoff_reporter: {}
+
+# playbooks for non-prometheus based monitoring that use prometheus for enrichment
+- triggers:
+  - on_pod_oom_killed:
+      rate_limit: 3600
+  actions:
+  - pod_oom_killer_enricher: {}
+  - logs_enricher: {}
+  - pod_node_graph_enricher:
+      resource_type: Memory
+  - oomkilled_container_graph_enricher:
+      resource_type: Memory
+  stop: true
+
+# playbooks for prometheus alerts enrichment
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubePodCrashLooping
+  actions:
+  - logs_enricher: {}
+  - pod_events_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+        alert_name: PrometheusRuleFailures
+  actions:
+  - prometheus_rules_enricher: {}
+  - logs_enricher:
+      filter_regex: ".*Evaluating rule failed.*"
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeCPUOvercommit
+  actions:
+  - cpu_overcommited_enricher: {}
+  - external_video_enricher:
+      url: https://bit.ly/overcommit-cpu
+      name: CPU Overcommited
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeMemoryOvercommit
+  actions:
+  - memory_overcommited_enricher: {}
+  - external_video_enricher:
+      url: https://bit.ly/memory-overcommit
+      name: Memory Overcommited
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubePodNotReady
+  actions:
+  - logs_enricher: {}
+  - pod_events_enricher: {}
+  - pod_issue_investigator: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeContainerWaiting
+  actions:
+  - pod_issue_investigator: {}
+  - pod_events_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeHpaReplicasMismatch
+  actions:
+  - hpa_mismatch_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeJobFailed
+  - on_prometheus_alert:
+      alert_name: KubeJobCompletion
+  - on_prometheus_alert:
+      alert_name: KubeJobNotCompleted
+  actions:
+  - job_info_enricher: {}
+  - job_events_enricher: {}
+  - job_pod_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeAggregatedAPIDown
+  actions:
+  - api_service_status_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeletTooManyPods
+  actions:
+  - node_pods_capacity_enricher: {}
+  - alert_explanation_enricher:
+      alert_explanation: "The node is approaching the maximum number of scheduled pods."
+      recommended_resolution: "Verify that you defined proper resource requests for your workloads. If pods cannot be scheduled, add more nodes to your cluster."
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeNodeNotReady
+  actions:
+  - node_allocatable_resources_enricher: {}
+  - node_running_pods_enricher: {}
+  - status_enricher:
+      show_details: true
+  - node_dmesg_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeNodeUnreachable
+  actions:
+  - resource_events_enricher: {}
+  - node_status_enricher: {}
+
+# Prometheus Statefulset playbooks
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeStatefulSetReplicasMismatch
+  actions:
+  - resource_events_enricher:
+      dependent_pod_mode: true
+  - statefulset_replicas_enricher: {}
+  - pod_issue_investigator: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeStatefulSetUpdateNotRolledOut
+  actions:
+  - related_pods: {}
+  - statefulset_replicas_enricher: {}
+
+
+# Prometheus Daemonset playbooks
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubeDaemonSetRolloutStuck
+  actions:
+  - resource_events_enricher: {}
+  - related_pods: {}
+  - daemonset_status_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubernetesDaemonsetMisscheduled
+  - on_prometheus_alert:
+      alert_name: KubeDaemonSetMisScheduled
+  actions:
+  - daemonset_status_enricher: {}
+  - daemonset_misscheduled_analysis_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: HostHighCpuLoad
+  actions:
+  - node_cpu_enricher: {}
+  - alert_graph_enricher:
+      resource_type: CPU
+      item_type: Node
+- triggers:
+  - on_prometheus_alert:
+      alert_name: HostOomKillDetected
+  actions:
+  - oom_killer_enricher: {}
+  - alert_graph_enricher:
+      resource_type: Memory
+      item_type: Node
+- triggers:
+  - on_prometheus_alert:
+      alert_name: NodeFilesystemSpaceFillingUp
+  - on_prometheus_alert:
+      alert_name: NodeFilesystemAlmostOutOfSpace
+  actions:
+  - node_disk_analyzer: {}
+  - alert_graph_enricher:
+      resource_type: Disk
+      item_type: Node
+- triggers:
+  - on_prometheus_alert:
+      alert_name: CPUThrottlingHigh
+      status: "all" # sometimes this enricher silences the alert, so we need to silence it regardless of status
+  actions:
+  - cpu_throttling_analysis_enricher: {}
+  - alert_graph_enricher:
+      resource_type: CPU
+      item_type: Pod
+- triggers:
+  - on_prometheus_alert:
+      alert_name: KubernetesDeploymentReplicasMismatch
+  - on_prometheus_alert:
+      alert_name: KubeDeploymentReplicasMismatch
+  actions:
+  - pod_issue_investigator: {}
+  - deployment_events_enricher:
+      included_types: ["Warning"]
+  - deployment_events_enricher:
+      included_types: ["Warning", "Normal"]
+      dependent_pod_mode: true
+
+- triggers:
+  - on_prometheus_alert:
+      status: "all"
+  actions:
+  - default_enricher: {}
+
+- triggers:
+  - on_prometheus_alert:
+      alert_name: NodeFilesystemSpaceFillingUp
+      k8s_providers: ["Minikube", "Kind", "RancherDesktop"]
+  - on_prometheus_alert:
+      alert_name: NodeFilesystemAlmostOutOfSpace
+      k8s_providers: ["Minikube", "Kind", "RancherDesktop"]
+  actions:
+  - alert_explanation_enricher:
+      alert_explanation: "This alert is fired when the file system is running out of space."
+      recommended_resolution: "This is a common issue on local clusters and we recommend increasing the node disk size for your cluster to run optimally."
+
+# additional builtin playbooks to enable when using Robusta UI
+# these are disabled by default without the UI because they are spammy when sent to slack
+
+enablePlatformPlaybooks: false
+
+platformPlaybooks:
+- triggers:
+  - on_kubernetes_warning_event_create:
+      exclude: ["NodeSysctlChange"]
+  actions:
+  - event_report: {}
+  - event_resource_events: {}
+  sinks:
+    - "robusta_ui_sink"
+- triggers:
+    - on_deployment_all_changes: {}
+    - on_daemonset_all_changes: {}
+    - on_statefulset_all_changes: {}
+    - on_ingress_all_changes: {}
+  actions:
+    - resource_babysitter: {}
+  sinks:
+    - "robusta_ui_sink"
+- triggers:
+    - on_deployment_all_changes: {}
+    - on_daemonset_all_changes: {}
+    - on_statefulset_all_changes: {}
+    - on_replicaset_all_changes: {}
+    - on_pod_all_changes: {}
+    - on_node_all_changes: {}
+    - on_job_all_changes: {}
+  actions:
+    - resource_events_diff: {}
+- triggers:
+  - on_job_failure: {}
+  actions:
+  - create_finding:
+      aggregation_key: "job_failure"
+      title: "Job Failed"
+  - job_info_enricher: {}
+  - job_events_enricher: {}
+  - job_pod_enricher: {}
+  sinks:
+    - "robusta_ui_sink"
+- triggers:
+  - on_schedule:
+      fixed_delay_repeat:
+        repeat: 1
+        seconds_delay: 120
+  actions:
+  - popeye_scan: {}
+  sinks:
+    - "robusta_ui_sink"
+- triggers:
+  - on_schedule:
+      cron_schedule_repeat:
+        cron_expression: "0 12 * * 1" # every Monday at 12:00
+  actions:
+  - krr_scan: {}
+  sinks:
+    - "robusta_ui_sink"
+
+# parameters for the robusta forwarder deployment
+kubewatch:
+  image: us-central1-docker.pkg.dev/genuine-flight-317411/devel/kubewatch:v2.5
+  imagePullPolicy: IfNotPresent
+  pprof: True
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+    limits:
+      cpu: ~
+  additional_env_vars: []
+  tolerations: []
+  annotations: {}
+  nodeSelector: ~
+  imagePullSecrets: []
+
+# parameters for the renderer service used in robusta runner to render grafana graphs
+grafanaRenderer:
+  enableContainer: false
+  image: us-central1-docker.pkg.dev/genuine-flight-317411/devel/grafana-renderer:7
+  imagePullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: ~
+
+# parameters for the robusta runner service account
+runnerServiceAccount:
+  # image pull secrets added to the runner service account. Any pod using the service account will get those
+  imagePullSecrets: []
+
+# parameters for the robusta runner
+runner:
+  image: us-central1-docker.pkg.dev/genuine-flight-317411/devel/robusta-runner:0.10.23
+  imagePullPolicy: IfNotPresent
+  log_level: INFO
+  sentry_dsn: https://53b627690db14de7b02095407596fa16@o1120648.ingest.sentry.io/6156573
+  sendAdditionalTelemetry: false
+  certificate: "" # base64 encoded
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1024Mi
+    limits:
+      cpu: ~
+  additional_env_vars: []
+  additional_env_froms: []
+  tolerations: []
+  annotations: {}
+  nodeSelector: ~
+  customClusterRoleRules: []
+  imagePullSecrets: []
+
+kube-prometheus-stack:
+  alertmanager:
+    tplConfig: true
+    config:
+      global:
+        resolve_timeout: 5m
+      route:
+        group_by: [ '...' ]
+        group_wait: 1s
+        group_interval: 1s
+        repeat_interval: 4h
+        receiver: 'robusta'
+        routes:
+          - match:
+              alertname: Watchdog
+            receiver: 'null'
+      receivers:
+        - name: 'null'
+        - name:  'robusta'
+          webhook_configs:
+            - url: 'http://robusta-runner.{{ .Release.Namespace }}.svc.cluster.local/api/alerts'
+              send_resolved: true
+    alertmanagerSpec:
+      resources:
+        requests:
+          cpu: 50m
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+  kubeProxy:
+    enabled: false
+  prometheus:
+    prometheusSpec:
+      resources:
+        requests:
+          cpu: 50m
+      retention: 15d
+      # we set a value slightly lower than the 100Gi below
+      # the retentionSize uses the suffix GB but it is really Gi units
+      # that is, the retentionSize is measured in base2 units just like Gi, Mi, etc
+      retentionSize: "99GB"
+
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 100Gi
+  prometheus-node-exporter:
+    service:
+      port: 9104
+      targetPort: 9104
+    resources:
+      requests:
+        cpu: 50m
+    # disable node-exporter on fargate because fargate doesn't allow daemonsets
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: eks.amazonaws.com/compute-type
+                  operator: NotIn
+                  values:
+                    - fargate
+  prometheusOperator:
+    resources:
+      requests:
+        cpu: 100m
+    prometheusConfigReloader:
+      resources:
+        limits:
+          cpu: 0
+  kube-state-metrics:
+    resources:
+      requests:
+        cpu: 10m
+
+rsa: ~
+
+# custom parameters for OpenShift clusters
+openshift:
+  enabled: false
+  createScc: false
+  createPrivilegedScc: false
+
+  privilegedSccName: null
+  sccName: null
+
+  sccPriority: null
+  privilegedSccPriority: null
