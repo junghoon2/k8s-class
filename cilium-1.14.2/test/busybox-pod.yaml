@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    blog: wireguard
+    name: client
+spec:
+  containers:
+    - name: client
+      image: busybox
+      command: ["watch", "wget", "server"]
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: "kubernetes.io/hostname"
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        blog: wireguard
