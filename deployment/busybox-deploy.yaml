@@ -2,10 +2,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: busybox
+  namespace: default
   labels:
     app: busybox
 spec:
-  replicas: 1
+  replicas: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: busybox
@@ -27,14 +33,13 @@ spec:
         # - "-c"
         # - "sleep inf"
         command: ["sh"]
-        args: ["-c", "sleep inf"]        
-        # resources:
-        #   limits:
-        #     cpu: 1500m
-        #     memory: 512Mi
-        #   requests:
-        #     cpu: 1500m
-        #     memory: 128Mi
+        args: ["-c", "sleep inf"] 
+        resources:
+          # limits:
+          #   memory: 512Mi
+          requests:
+            cpu: 500m
+            memory: 128Mi
       # affinity:
       #   podAntiAffinity:
       #     requiredDuringSchedulingIgnoredDuringExecution:
