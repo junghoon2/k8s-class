@@ -1,7 +1,7 @@
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
-  name: default
+  name: spot
   namespace: karpenter
 spec:
   # References cloud provider-specific custom resource, see your cloud provider specific documentation

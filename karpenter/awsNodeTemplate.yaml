@@ -4,11 +4,12 @@ metadata:
   name: default
 spec:
   subnetSelector:
-    karpenter.sh/discovery: singapore-test
+    karpenter.sh/discovery: jerry-test
+    Name: "jerry-test-private-ap-northeast-2*"
   securityGroupSelector:
-    karpenter.sh/discovery: singapore-test
+    karpenter.sh/discovery: jerry-test
   tags:
-    karpenter.sh/discovery: singapore-test
+    karpenter.sh/discovery: jerry-test
   blockDeviceMappings: # (2)
   - deviceName: /dev/xvda
     ebs:
