@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: client-one
+  name: client-one
+  namespace: sgp-demo
+spec:
+  containers:
+  - image: curlimages/curl:latest
+    name: client-one
+    command:
+    - sleep
+    - "3600"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: client-two
+  name: client-two
+  namespace: sgp-demo
+spec:
+  containers:
+  - image: curlimages/curl:latest
+    name: client-two
+    command:
+    - sleep
+    - "3600"

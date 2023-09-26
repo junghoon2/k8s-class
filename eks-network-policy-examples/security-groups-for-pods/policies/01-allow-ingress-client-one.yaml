@@ -1,0 +1,25 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-ingress-client-one
+  namespace: sgp-demo
+spec:
+  podSelector:
+    matchLabels:
+      app: sgp-demo
+  ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            app: client-one
+  # egress:
+  #   - to:
+  #     - namespaceSelector:
+  #         matchLabels:
+  #           kubernetes.io/metadata.name: kube-system
+  #       podSelector:
+  #         matchLabels:
+  #           k8s-app: kube-dns
+  #     ports:
+  #     - port: 53
+  #       protocol: UDP

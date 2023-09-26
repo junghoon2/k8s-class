@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: another-client-one
+  name: another-client-one
+  namespace: another-ns
+spec:
+  containers:
+  - image: curlimages/curl:latest
+    name: client-one
+    command:
+    - sleep
+    - "3600"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: another-client-two
+  name: another-client-two
+  namespace: another-ns
+spec:
+  containers:
+  - image: curlimages/curl:latest
+    name: client-two
+    command:
+    - sleep
+    - "3600"

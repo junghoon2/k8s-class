@@ -1,0 +1,16 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: demo-app-allow-another-client
+spec:
+  podSelector:
+    matchLabels:
+      app: demo-app
+  ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            app: another-client-one
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: another-ns
