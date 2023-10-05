@@ -18,6 +18,12 @@ spec:
       containers:
       - name: httpd
         image: httpd
+        resources:
+          # limits:
+          #   memory: 512Mi
+          requests:
+            cpu: 1000m
+            memory: 128Mi
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
