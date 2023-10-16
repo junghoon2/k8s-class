@@ -8,6 +8,6 @@ spec:
       app: demo-app
   ingress:
   - from:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: default
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: default

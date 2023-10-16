@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: network-policy-demo-ingress
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:394931144369:certificate/b9706fdb-a04a-41e7-94e3-fc13358e9004
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80,"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    # subnet-00af73847a0dae2e7, utility-dive.codes(az-a)
+    # subnet-07d927125dc68a1e0, utility-dive.codes(az-b)
+    # subnet-01229300286caae0a, utility-dive.codes(az-c)
+    alb.ingress.kubernetes.io/subnets: subnet-00af73847a0dae2e7,subnet-07d927125dc68a1e0,subnet-01229300286caae0a
+    # sg-0715a20259d1aab60, dive-sbx-office-only 어드민 or 개발환경 전용
+    # sg-084ae364ba2196d64, dive-sbx-remote-working  어드민 or 개발환경 전용
+    # sg-05f2fb0855c704fa7, dive-sbx-public-internet 유저 접속용 전용(개발에서 사용하지 않는게 좋습니다)
+    # sg-06bf114f3c9937ad1, dive-dev-internal-traffic vpc 내부 통신
+    # alb.ingress.kubernetes.io/security-groups: sg-0715a20259d1aab60,sg-084ae364ba2196d64
+    alb.ingress.kubernetes.io/success-codes: '200'
+    alb.ingress.kubernetes.io/actions.response-404: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"404","messageBody":"404 page not found"}}
+spec:
+  ingressClassName: alb
+  rules:
+  - host: test-network-policy.dive.codes
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-app
+            port:
+              number: 80

@@ -1,0 +1,14 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: demo-app-allow-ip
+spec:
+  podSelector:
+    matchLabels:
+      app: demo-app
+  ingress:
+  - from:
+    # - ipBlock:
+    #     cidr: "3.39.99.184/32"  # 허용하려는 IP 범위
+    - ipBlock:
+        cidr: "10.76.0.0/16"  # 허용하려는 IP 범위
