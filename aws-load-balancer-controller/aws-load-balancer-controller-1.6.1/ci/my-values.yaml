@@ -1,0 +1,6 @@
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::${aws_account_id}:role/load-balancer-controller
+clusterName: ${cluster_name}
