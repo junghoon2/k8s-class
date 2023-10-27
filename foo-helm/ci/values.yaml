@@ -1,0 +1,100 @@
+image:
+  repository: pengbai/docker-supermario
+  pullPolicy: Always
+  tag: "latest" # 이미지 태그를 지정합니다.
+
+envs: 
+  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+  # e.g.
+  SERVER_PORT: 8080
+  # SERVER_HOST: default
+  # ...
+
+secrets:
+  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+  # e.g.
+  PostgreSQL_PASSWORD: cGFzc3dvcmQ=
+  # ...
+
+# Networking
+container:
+  port: 8080
+
+# Volume
+pvc:
+  enabled: false
+  accessModes:
+    - ReadWriteMany
+  storageClassName: "longhorn"
+  size: 10Gi
+
+terminationGracePeriodSeconds: 30
+
+metrics:
+  enabled: false # 메트릭을 사용할지 결정합니다
+  path: /metrics # 메트릭 경로를 지정합니다.
+
+probes:
+  liveness:
+    enabled: false
+    path: / # liveness 경로를 바꿀 수 있습니다 e.g. /healthz
+  readiness:
+    enabled: false
+    path: / # readiness 경로를 바꿀 수 있습니다 e.g. /healthz
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Authentication
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+# Security
+podSecurityContext: {}
+securityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+  - host: chart-example.local
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  tls: []
+
+# Conatiner resources
+resources:
+  limits:
+  # memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 128Mi
+
+# HPA
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Scheduling
+nodeSelector: {}
+tolerations: []
+affinity: {}
