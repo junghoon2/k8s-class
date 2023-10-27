@@ -3,7 +3,7 @@ image:
   pullPolicy: Always
   tag: "latest" # 이미지 태그를 지정합니다.
 
-envs: 
+envs:
   # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
   # e.g.
   SERVER_PORT: 8080
@@ -12,8 +12,8 @@ envs:
 
 secrets:
   # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
-  # e.g.
-  PostgreSQL_PASSWORD: cGFzc3dvcmQ=
+  # e.g. base64로 인코딩된 비밀번호를 넣으세요
+  PostgreSQL_PASSWORD: cGFzc3dvcmQ=  # password
   # ...
 
 # Networking

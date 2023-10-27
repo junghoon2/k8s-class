@@ -52,7 +52,7 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           envFrom:
-          {{- if .Values.env }}
+          {{- if .Values.envs }}
             - configMapRef:
                 name: {{ include "<CHARTNAME>.fullname" . }}-env
           {{- end }}
