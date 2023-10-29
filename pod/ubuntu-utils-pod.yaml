@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu
+  labels:
+    app: ubuntu
+spec:
+  containers:
+  - name: ubuntu
+    image: jayunit100/ubuntu-utils
+    command:
+    - sleep
+    - "3600"
+    ports:
+    - containerPort: 8080
