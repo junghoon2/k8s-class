@@ -1,0 +1,27 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: mycluster
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:15.3
+  instances: 3  
+  storage:
+    size: 3Gi
+  postgresql:
+    parameters:
+      max_worker_processes: "40"
+      timezone: "Asia/Seoul"
+    pg_hba:
+      - host all postgres all trust
+  primaryUpdateStrategy: unsupervised 
+  enableSuperuserAccess: true
+  bootstrap:
+    initdb:
+      database: app
+      encoding: UTF8
+      localeCType: C
+      localeCollate: C
+      owner: app
+
+  monitoring:
+    enablePodMonitor: true

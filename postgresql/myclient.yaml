@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ${PODNAME}
+  labels:
+    app: myclient
+spec:
+  containers:
+  - name: ${PODNAME}
+    image: bitnami/postgresql:${VERSION}
+    command: ["tail"]
+    args: ["-f", "/dev/null"]
+  terminationGracePeriodSeconds: 0
