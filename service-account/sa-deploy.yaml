@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl
+  namespace: default
+spec:
+  selector: 
+    matchLabels: 
+      app: kubectl
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kubectl
+    spec:
+      containers:
+      - image: jrkessl/sleeperk8s:1.24.8
+        name: kubectl
+      serviceAccountName: mysa
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mysa
+  namespace: default
