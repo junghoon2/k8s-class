@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "foo-helm.fullname" . }}
+  name: {{ include "foo.fullname" . }}
 spec:
   accessModes:
     {{- toYaml .Values.pvc.accessModes | nindent 4 }}

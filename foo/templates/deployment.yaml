@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "foo-helm.fullname" . }}
+  name: {{ include "foo.fullname" . }}
   labels:
-    {{- include "foo-helm.labels" . | nindent 4 }}
+    {{- include "foo.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "foo-helm.selectorLabels" . | nindent 6 }}
+      {{- include "foo.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "foo-helm.selectorLabels" . | nindent 8 }}
+        {{- include "foo.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "foo-helm.serviceAccountName" . }}
+      serviceAccountName: {{ include "foo.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -54,11 +54,11 @@ spec:
           envFrom:
           {{- if .Values.envs }}
             - configMapRef:
-                name: {{ include "foo-helm.fullname" . }}-env
+                name: {{ include "foo.fullname" . }}-env
           {{- end }}
           {{- if .Values.secrets }}
             - secretRef:
-                name: {{ include "foo-helm.fullname" . }}-secret
+                name: {{ include "foo.fullname" . }}-secret
           {{- end }}
       {{- if .Values.pvc.enabled }}
           volumeMounts:
@@ -67,7 +67,7 @@ spec:
       volumes:
       - name: my-volume
         persistentVolumeClaim:
-          claimName: {{ include "foo-helm.fullname" . }}
+          claimName: {{ include "foo.fullname" . }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
