@@ -1,26 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: busybox
+  name: httpd
   namespace: default
+  labels:
+    app: httpd
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
-      app: busybox # POD label과 일치
+      app: httpd
   template:
     metadata:
       labels:
-        app: busybox # Selector label과 일치
+        app: httpd
     spec:
       containers:
-      - name: busybox
-        image: busybox
-        command: ["sh"]
-        args: ["-c", "sleep inf"]
+      - name: httpd
+        image: httpd
         resources:
+          # limits:
+          #   memory: 512Mi
           requests:
-            cpu: 400m
+            cpu: 300m
             memory: 128Mi
       affinity:
         podAntiAffinity:
@@ -30,5 +32,5 @@ spec:
               - key: app
                 operator: In
                 values:
-                - busybox
+                - httpd
             topologyKey: kubernetes.io/hostname
