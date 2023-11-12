@@ -10,11 +10,11 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/certificate-arn: $CERTIFICATE_ARN
-    external-dns.alpha.kubernetes.io/hostname: $INGRESS_HOST
+    external-dns.alpha.kubernetes.io/hostname: $ECHOSERVER_HOST
 spec:
   ingressClassName: alb
   rules:
-  - host: $INGRESS_HOST
+  - host: $ECHOSERVER_HOST
     http:
       paths:
       - path: /echo-server
