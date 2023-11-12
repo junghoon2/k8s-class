@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: busybox
+  name: busybox-pdb
   labels:
-    app: busybox
+    app: busybox-pdb
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: busybox
+      app: busybox-pdb
   template:
     metadata:
       labels:
-        app: busybox
+        app: busybox-pdb
     spec:
       containers:
       - command:
@@ -21,4 +21,4 @@ spec:
         image: busybox
         name: busybox
       nodeSelector:
-        kubernetes.io/hostname: ip-10-110-47-109.ap-southeast-1.compute.internal
+        kubernetes.io/hostname: ip-10-110-40-108.ap-northeast-2.compute.internal
