@@ -21,4 +21,4 @@ spec:
         image: busybox
         name: busybox
       nodeSelector:
-        kubernetes.io/hostname: ip-10-110-40-108.ap-northeast-2.compute.internal
+        kubernetes.io/hostname: ip-10-110-43-80.ap-northeast-2.compute.internal
