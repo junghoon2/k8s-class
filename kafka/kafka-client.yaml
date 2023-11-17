@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata: 
+  name: myclient
+  labels: 
+    app: kafkaclient
+spec: 
+  selector: 
+    matchLabels: 
+      name: kafkaclient
+  template: 
+    metadata: 
+      labels: 
+        name: kafkaclient
+    spec: 
+      containers: 
+      - name: kafkaclient
+        image: bitnami/kafka:${VERSION}
+        command: ["tail"]
+        args: ["-f", "/dev/null"]
+      terminationGracePeriodSeconds: 0

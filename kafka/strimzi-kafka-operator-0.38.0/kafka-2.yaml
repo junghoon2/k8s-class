@@ -50,7 +50,9 @@ spec:
                       operator: In
                       values: 
                         - kafka
-                topologyKey: "topology.ebs.csi.aws.com/zone"
+                # topologyKey: "topology.ebs.csi.aws.com/zone"
+                topologyKey: kubernetes.io/hostname
+
     metricsConfig:
       type: jmxPrometheusExporter
       valueFrom:
@@ -81,7 +83,9 @@ spec:
                       operator: In
                       values: 
                         - zookeeper
-                topologyKey: "topology.ebs.csi.aws.com/zone"
+                # topologyKey: "topology.ebs.csi.aws.com/zone"
+                topologyKey: kubernetes.io/hostname
+
     metricsConfig:
       type: jmxPrometheusExporter
       valueFrom:
