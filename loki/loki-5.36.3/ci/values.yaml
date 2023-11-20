@@ -1,6 +1,8 @@
+# helm install --values values.yaml loki grafana/loki --version 5.36.3 -n monitoring
+
 serviceAccount:
   annotations:
-    "eks.amazonaws.com/role-arn": "arn:aws:iam::394931144369:role/admin@shoes-dev"
+    "eks.amazonaws.com/role-arn": "arn:aws:iam::{ACCOUNT_ID}:role/{ROLE_NAME}"
 
 loki:
   storage:
@@ -8,6 +10,20 @@ loki:
     s3:
       region: ap-northeast-2
     bucketNames:
-      chunks: loki-s3-shoes-dev
-      ruler: loki-s3-shoes-dev
-      admin: loki-s3-shoes-dev
+      chunks: loki-s3-{CLUSTER_NAME}
+      ruler: loki-s3-{CLUSTER_NAME}
+      admin: loki-s3-{CLUSTER_NAME}
+
+
+# -- Section for configuring optional Helm test
+test:
+  enabled: false
+
+# Monitoring section determines which monitoring features to enable
+monitoring:
+  lokiCanary:
+    enabled: false
+  selfMonitoring:
+    enabled: false
+    grafanaAgent:
+      installOperator: false
