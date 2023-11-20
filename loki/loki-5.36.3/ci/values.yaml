@@ -1,0 +1,13 @@
+serviceAccount:
+  annotations:
+    "eks.amazonaws.com/role-arn": "arn:aws:iam::394931144369:role/admin@shoes-dev"
+
+loki:
+  storage:
+    type: "s3"
+    s3:
+      region: ap-northeast-2
+    bucketNames:
+      chunks: loki-s3-shoes-dev
+      ruler: loki-s3-shoes-dev
+      admin: loki-s3-shoes-dev
