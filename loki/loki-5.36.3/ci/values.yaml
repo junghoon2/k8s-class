@@ -2,18 +2,39 @@
 
 serviceAccount:
   annotations:
-    "eks.amazonaws.com/role-arn": "arn:aws:iam::{ACCOUNT_ID}:role/{ROLE_NAME}"
+    "eks.amazonaws.com/role-arn": "{ROLE_ARN}"
 
 loki:
+  auth_enabled: false
+
+  limits_config:
+    retention_period: 31d
+    max_query_parallelism: 32
+    split_queries_by_interval: 15m
+
+  querier:
+    max_concurrent: 8
+
+  frontend_worker:
+    match_max_concurrent: true
+
+  ingester:
+    chunk_encoding: snappy
+
+  server:
+    http_server_read_timeout: 600s
+    http_server_write_timeout: 600s
+    grpc_server_max_recv_msg_size: 20971520  # 20MB
+    grpc_server_max_send_msg_size: 20971520  
+
   storage:
     type: "s3"
     s3:
       region: ap-northeast-2
     bucketNames:
-      chunks: loki-s3-{CLUSTER_NAME}
-      ruler: loki-s3-{CLUSTER_NAME}
-      admin: loki-s3-{CLUSTER_NAME}
-
+      chunks: loki-s3-jerry-test
+      ruler: loki-s3-jerry-test
+      admin: loki-s3-jerry-test
 
 # -- Section for configuring optional Helm test
 test:
