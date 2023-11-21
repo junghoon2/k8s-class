@@ -14,3 +14,7 @@ defaultVolumes:
   - name: pods
     hostPath:
       path: /var/log/pods
+
+tolerations:
+  - effect: NoSchedule
+    operator: Exists
