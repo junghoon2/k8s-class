@@ -5,7 +5,8 @@ metadata:
 spec:
   subnetSelector:
     karpenter.sh/discovery: jerry-test
-    Name: "jerry-test-private-ap-northeast-2*"
+    Name: "jerry-test-private-ap-northeast-2a"
+    # Name: "jerry-test-private-ap-northeast-2*"
   securityGroupSelector:
     karpenter.sh/discovery: jerry-test
   tags:

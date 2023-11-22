@@ -19,6 +19,9 @@ spec:
   - key: "karpenter.k8s.aws/instance-family"
     operator: In
     values: ["t3"]
+  - key: "node.kubernetes.io/instance-type"
+    operator: NotIn
+    values: ["t3.small"]
   - key: "karpenter.sh/capacity-type" # If not included, the webhook for the AWS cloud provider will default to on-demand
     operator: In
     values: ["spot"]
