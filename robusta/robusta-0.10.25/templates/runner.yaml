@@ -1,0 +1,223 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-runner
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-runner
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-runner
+        robustaComponent: "runner"
+      {{- if or .Values.runner.annotations .Values.globalConfig.custom_annotations }}
+      annotations:
+        {{- if .Values.runner.annotations}} {{ toYaml .Values.runner.annotations | nindent 8 }}
+        {{- end }}
+        {{- if .Values.globalConfig.custom_annotations }} {{ toYaml .Values.globalConfig.custom_annotations | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}-runner-service-account
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      {{- if .Values.runner.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml .Values.runner.imagePullSecrets | nindent 6 }}
+      {{- end }}
+      containers:
+      - name: runner
+        {{- if .Values.runner.image }}
+        image: {{ .Values.runner.image }}
+        {{ else }}
+        image: {{ .Values.image.registry }}/{{ .Values.runner.imageName }}
+        {{- end }}
+        imagePullPolicy: {{ .Values.runner.imagePullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {}
+          privileged: false
+          readOnlyRootFilesystem: false
+        env:
+          - name: PLAYBOOKS_CONFIG_FILE_PATH
+            value: /etc/robusta/config/active_playbooks.yaml
+          - name: RELEASE_NAME
+            value: {{ .Release.Name | quote }}
+          - name: PROMETHEUS_ENABLED
+            value: {{ .Values.enablePrometheusStack | quote}}
+          - name: SEND_ADDITIONAL_TELEMETRY
+            value: {{ .Values.runner.sendAdditionalTelemetry | quote }}
+          - name: LOG_LEVEL
+            value: {{ .Values.runner.log_level }}
+          - name: INSTALLATION_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          {{- if .Values.disableCloudRouting }}
+          - name: CLOUD_ROUTING
+            value: "False"
+          {{- end }}
+          {{- if not .Values.monitorHelmReleases }}
+          - name: DISABLE_HELM_MONITORING
+            value: "True"
+          {{- end }}
+          {{- if .Values.scaleAlertsProcessing }}
+          - name: ALERTS_WORKERS_POOL
+            value: "True"
+          {{- end }}
+          - name: RUNNER_VERSION
+            value: {{ .Chart.AppVersion }}
+          - name: CERTIFICATE
+            value: {{ .Values.runner.certificate }}
+          - name: IMAGE_REGISTRY
+            value: {{ .Values.image.registry }}
+          {{- if kindIs "string" .Values.runner.additional_env_vars }}
+          {{- fail "The `additional_env_vars` string value is deprecated. Change the `additional_env_vars` value to an array" -}}
+          {{- end }}
+          {{- if .Values.runner.additional_env_vars }}
+          {{ toYaml .Values.runner.additional_env_vars | nindent 10 }}
+          {{- end }}
+        envFrom:
+        - secretRef:
+            name: robusta-runner-secret
+            optional: true
+        {{- if .Values.runner.additional_env_froms }}
+        {{ toYaml .Values.runner.additional_env_froms | nindent 8 }}
+        {{- end }}
+        volumeMounts:
+          - name: auth-config-secret
+            mountPath: /etc/robusta/auth
+          - name: playbooks-config-secret
+            mountPath: /etc/robusta/config
+          {{- if .Values.playbooksPersistentVolume }}
+          - name: persistent-playbooks-storage
+            mountPath: /etc/robusta/playbooks/storage
+          {{- end }}
+          {{- with .Values.runner.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        lifecycle:
+          preStop:
+            exec:
+              command: ["bash", "-c", "kill -SIGINT 1"]
+        resources:
+          requests:
+            cpu: {{ .Values.runner.resources.requests.cpu }}
+            memory: {{ if .Values.isSmallCluster }}"512Mi"{{ else }}{{ .Values.runner.resources.requests.memory | quote }}{{ end }}
+          limits:
+            memory: {{ if .Values.isSmallCluster }}"512Mi"{{ else if .Values.runner.resources.limits.memory }}{{ .Values.runner.resources.limits.memory | quote }}{{ else }}{{ .Values.runner.resources.requests.memory | quote }}{{ end }}
+            {{ if .Values.runner.resources.limits.cpu }}cpu: {{ .Values.runner.resources.limits.cpu | quote }}{{ end }}
+      {{- if .Values.grafanaRenderer.enableContainer }}
+      - name: grafana-renderer
+        {{- if .Values.grafanaRenderer.image }}
+        image: {{ .Values.grafanaRenderer.image }}
+        {{ else }}
+        image: {{ .Values.image.registry }}/{{ .Values.grafanaRenderer.imageName }}
+        {{- end }}
+        imagePullPolicy: {{ .Values.grafanaRenderer.imagePullPolicy }}
+        securityContext:
+          privileged: false
+        lifecycle:
+          preStop:
+            exec:
+              command: ["bash", "-c", "kill -SIGINT 1"]
+        resources:
+          requests:
+            cpu: {{ .Values.grafanaRenderer.resources.requests.cpu }}
+            memory: {{ if .Values.isSmallCluster }}"64Mi"{{ else }}{{ .Values.grafanaRenderer.resources.requests.memory | quote }}{{ end }}
+          limits:
+            memory: {{ if .Values.isSmallCluster }}"64Mi"{{ else if .Values.grafanaRenderer.resources.limits.memory }}{{ .Values.grafanaRenderer.resources.limits.memory | quote }}{{ else }}{{ .Values.grafanaRenderer.resources.requests.memory | quote }}{{ end }}
+            {{ if .Values.grafanaRenderer.resources.limits.cpu }}cpu: {{ .Values.grafanaRenderer.resources.limits.cpu | quote }}{{ end }}
+      {{- end }}
+      volumes:
+        - name: playbooks-config-secret
+          secret:
+            secretName: robusta-playbooks-config-secret
+            optional: true
+        - name: auth-config-secret
+          secret:
+            secretName: robusta-auth-config-secret
+            optional: true
+        {{- if .Values.playbooksPersistentVolume }}
+        - name: persistent-playbooks-storage
+          persistentVolumeClaim:
+            claimName: persistent-playbooks-pv-claim
+        {{- end }}
+        {{- with .Values.runner.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if .Values.runner.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.runner.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.runner.affinity }}
+      affinity: {{ toYaml .Values.runner.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.runner.tolerations }}
+      tolerations:  {{ toYaml .Values.runner.tolerations | nindent 8 }}
+      {{- end }}
+{{- if .Values.playbooksPersistentVolume }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistent-playbooks-pv-claim
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ if .Values.isSmallCluster }}"512Mi"{{ else }}{{ .Values.playbooksPersistentVolumeSize }}{{ end }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-runner
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}-runner
+    target: robusta-runner
+spec:
+  selector:
+    app: {{ .Release.Name }}-runner
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 5000
+---
+{{ if and (.Values.enableServiceMonitors) (or (.Values.enablePrometheusStack) (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor") ) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: robusta-runner-service-monitor
+  labels:
+    # this label is how the Prometheus installed with Robusta finds ServiceMonitors
+    # TODO: we probably need to add custom labels here for a Prometheus installed separately
+    release: {{ .Release.Name }}
+spec:
+  endpoints:
+    - path: /metrics
+      port: http
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-runner
+  targetLabels:
+    - target
+{{ end }}
+---
+{{ if .Values.runner.sentry_dsn }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: robusta-runner-secret
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+  SENTRY_DSN: {{ .Values.runner.sentry_dsn }}
+{{ end }}

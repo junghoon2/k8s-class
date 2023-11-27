@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: robusta-playbooks-config-secret
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+data:
+  active_playbooks.yaml: |-
+    {{ include "robusta.configfile" . | b64enc }}
