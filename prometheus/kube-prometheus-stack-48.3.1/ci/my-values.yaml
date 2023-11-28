@@ -1,3 +1,39 @@
+defaultRules:
+  create: true
+  rules:
+    etcd: false
+    kubeApiserverAvailability: false
+    kubeApiserverBurnrate: false
+    kubeApiserverHistogram: false
+    kubeApiserverSlos: false
+    kubeControllerManager: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    windows: false
+
+## Configuration for alertmanager
+alertmanager:
+  enabled: true
+  config:
+    route:
+      group_by: ['namespace']
+      group_wait: 30s
+      group_interval: 2m
+      repeat_interval: 6h
+      receiver: 'slack-notifications'
+      routes:
+      - receiver: 'slack-notifications'
+        matchers:
+          - alertname =~ "InfoInhibitor|Watchdog"
+    receivers:
+    - name: 'slack-notifications'
+      slack_configs:
+      - api_url: https://hooks.slack.com/services/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 # 여기에 Slack Webhook URL을 넣습니다.
+        channel: '#alert-grafana-jerry-test' # 메시지를 보낼 Slack 채널
+        send_resolved: true
+        title: '{{ template "slack.default.title" . }}'
+        text: "summary: {{ .CommonAnnotations.summary }}\ndescription: {{ .CommonAnnotations.description }}"
+
 grafana:
   enabled: true
   defaultDashboardsTimezone: Asia/Seoul
@@ -8,12 +44,12 @@ grafana:
       alb.ingress.kubernetes.io/scheme: internet-facing # internet-facing or internal
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
-      alb.ingress.kubernetes.io/certificate-arn: $CERT_ARN
+      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:516696002612:certificate/33cf6410-65a4-4c28-b490-c7fba1a5289e
       alb.ingress.kubernetes.io/success-codes: 200-399
       alb.ingress.kubernetes.io/group.name: "my-test"
-      external-dns.alpha.kubernetes.io/hostname: $GRAFANA_DOMAIN
+      external-dns.alpha.kubernetes.io/hostname: grafana.jerryljh.me
     hosts:
-    - $GRAFANA_DOMAIN
+    - grafana.jerryljh.me
     paths:
     - /*
   persistence:
