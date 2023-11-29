@@ -43,13 +43,14 @@ grafana:
     annotations:
       alb.ingress.kubernetes.io/scheme: internet-facing # internet-facing or internal
       alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/group.name: sg-external
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
-      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:516696002612:certificate/33cf6410-65a4-4c28-b490-c7fba1a5289e
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
       alb.ingress.kubernetes.io/success-codes: 200-399
-      alb.ingress.kubernetes.io/group.name: "my-test"
-      external-dns.alpha.kubernetes.io/hostname: grafana.jerryljh.me
+      alb.ingress.kubernetes.io/certificate-arn: $CERTIFICATE_ARN
+      external-dns.alpha.kubernetes.io/hostname: $GRAFANA_HOST
     hosts:
-    - grafana.jerryljh.me
+    - $GRAFANA_HOST
     paths:
     - /*
   persistence:
