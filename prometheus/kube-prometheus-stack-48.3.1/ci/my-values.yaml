@@ -64,6 +64,44 @@ grafana:
     finalizers:
     - kubernetes.io/pvc-protection
 
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: provider-site
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/provider-site
+
+# now using that provider to import dashboards
+  dashboards:
+    provider-site:
+      kubernetes-views-global:
+        # url: https://grafana.com/api/dashboards/1860/revisions/27/download
+        gnetId: 15757
+        revision: 31
+        datasource: Prometheus
+      kubernetes-views-namespaces:
+        gnetId: 15758
+        revision: 27
+        datasource: Prometheus
+      kubernetes-views-nodes:
+        gnetId: 15759
+        revision: 19
+        datasource: Prometheus
+      kubernetes-views-pods:
+        gnetId: 15760
+        revision: 22
+        datasource: Prometheus
+      prometheus:
+        gnetId: 19105
+        revision: 1
+        datasource: Prometheus
+
 prometheus:
   prometheusSpec:
     serviceMonitorSelectorNilUsesHelmValues: false
