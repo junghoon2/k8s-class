@@ -18,7 +18,7 @@ spec:
   requirements:
   - key: "karpenter.k8s.aws/instance-category"
     operator: In
-    values: ["c", "m", "t"]
+    values: ["c", "m"]
   # - key: "node.kubernetes.io/instance-type"
   #   operator: NotIn
   #   values: ["t3.small"]
