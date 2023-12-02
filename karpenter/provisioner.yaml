@@ -16,12 +16,15 @@ spec:
   # These requirements are combined with pod.spec.affinity.nodeAffinity rules.
   # Operators { In, NotIn } are supported to enable including or excluding values
   requirements:
-  - key: "karpenter.k8s.aws/instance-family"
+  - key: "karpenter.k8s.aws/instance-category"
     operator: In
-    values: ["t3"]
-  - key: "node.kubernetes.io/instance-type"
-    operator: NotIn
-    values: ["t3.small"]
+    values: ["c", "m", "t"]
+  # - key: "node.kubernetes.io/instance-type"
+  #   operator: NotIn
+  #   values: ["t3.small"]
+  - key: "topology.kubernetes.io/zone"
+    operator: In
+    values: ["ap-northeast-2a"]
   - key: "karpenter.sh/capacity-type" # If not included, the webhook for the AWS cloud provider will default to on-demand
     operator: In
     values: ["spot"]
