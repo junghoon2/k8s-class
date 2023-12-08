@@ -102,6 +102,30 @@ grafana:
         revision: 1
         datasource: Prometheus
 
+kubeApiServer:
+  enabled: false
+kubelet:
+  enabled: true
+kubeControllerManager:
+  enabled: false
+coreDns:
+  enabled: true
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: true
+kubeStateMetrics:
+  enabled: true
+nodeExporter:
+  enabled: true
+prometheusOperator:
+  enabled: true
+
+prometheus-node-exporter:
+  priorityClassName: system-node-critical
+
 prometheus:
   prometheusSpec:
     serviceMonitorSelectorNilUsesHelmValues: false
