@@ -3,6 +3,8 @@ global:
     enabled: false
     proxy: false
 
+kubecostToken : "aGVsbUBrdWJlY29zdC5jb20=xm343yadf98"
+
 prometheus:
   server:
     image:
@@ -20,3 +22,4 @@ prometheus:
     disabled: false
   nodeExporter:
     enabled: false
+

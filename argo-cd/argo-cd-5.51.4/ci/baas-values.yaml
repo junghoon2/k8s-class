@@ -1,0 +1,18 @@
+server:
+  extraArgs:
+  - --insecure
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/group.name: sg-internal
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/certificate-arn: ${CERTIFICATE_ARN}
+      external-dns.alpha.kubernetes.io/hostname: ${ARGOCD_HOST}
+    ingressClassName: "alb"
+    hosts:
+    - ${ARGOCD_HOST}
+    paths:
+    - /
