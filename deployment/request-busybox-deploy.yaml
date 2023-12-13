@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: request-busybox
+  namespace: default
+  labels:
+    app: request-busybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: request-busybox
+  template: 
+    metadata:
+      labels:
+        app: request-busybox
+    spec:
+      containers:
+      - name: request-busybox
+        image: busybox
+        command: ["sh"]
+        args: ["-c", "sleep inf"] 
+        resources:
+          limits:
+            # cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 1
+            memory: 1Gi
+      # affinity:
+      #   podAntiAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #     - labelSelector:
+      #         matchExpressions:
+      #         - key: app
+      #           operator: In
+      #           values:
+      #           - request-busybox
+      #       topologyKey: "kubernetes.io/hostname"

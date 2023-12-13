@@ -9,5 +9,5 @@ spec:
   # - ReadWriteMany
   resources:
     requests:
-      storage: 1Gi
-  storageClassName: "openebs-hostpath"
+      storage: 10Gi
+  # storageClassName: "openebs-hostpath"

@@ -1,0 +1,22 @@
+global:
+  grafana:
+    enabled: false
+    proxy: false
+
+prometheus:
+  server:
+    image:
+      repository: public.ecr.aws/kubecost/prometheus
+      tag: v2.35.0
+    resources:
+      limits:
+    #   cpu: 500m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+     
+  kube-state-metrics:
+    disabled: false
+  nodeExporter:
+    enabled: false
