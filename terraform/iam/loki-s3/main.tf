@@ -32,9 +32,5 @@ resource "aws_iam_role" "loki_jerry_test" {
   managed_policy_arns   = ["arn:aws:iam::${ACCOUNT_ID}:policy/AWSS3EksLokiAccess"]
   max_session_duration  = 3600
   name                  = "loki-jerry-test"
-  name_prefix           = null
   path                  = "/"
-  permissions_boundary  = null
-  tags                  = {}
-  tags_all              = {}
 }

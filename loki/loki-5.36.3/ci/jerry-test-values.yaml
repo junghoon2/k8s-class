@@ -2,7 +2,7 @@
 
 serviceAccount:
   annotations:
-    "eks.amazonaws.com/role-arn": "{LOKI_ROLE_ARN}"
+    "eks.amazonaws.com/role-arn": loki-jerry-test
 
 loki:
   auth_enabled: false
