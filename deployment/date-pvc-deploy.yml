@@ -21,7 +21,8 @@ spec:
         command:
         - "/bin/sh"
         - "-c"
-        - "while true; do date >> /pod-out.txt; sleep 5; done"
+        - "while true; do echo ERROR; sleep 5; done"
+        # - "while true; do date >> /pod-out.txt; sleep 5; done"
       #     volumeMounts:
       #       - name: date-vol # Volume 이름
       #         mountPath: /data # Mount 이름
