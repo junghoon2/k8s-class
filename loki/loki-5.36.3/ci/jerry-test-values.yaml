@@ -2,18 +2,48 @@
 
 serviceAccount:
   annotations:
-    "eks.amazonaws.com/role-arn": "arn:aws:iam::${ACCOUNT_ID}:role/loki-jerry-test"
+    "eks.amazonaws.com/role-arn": arn:aws:iam::516696002612:role/loki-jerry-test
 
 loki:
   auth_enabled: false
 
   limits_config:
-    retention_period: 31d
+    retention_period: 5d
+    enforce_metric_name: false
+    reject_old_samples: true
+    reject_old_samples_max_age: 168h
+    max_cache_freshness_per_query: 10m
+    split_queries_by_interval: 24h
+    per_stream_rate_limit: 30MB
+    per_stream_rate_limit_burst: 50MB
+    max_entries_limit_per_query: 20000
+    ingestion_rate_mb: 20
+    ingestion_burst_size_mb: 30
     max_query_parallelism: 32
-    split_queries_by_interval: 15m
+    max_query_length: 0h
+    max_query_series: 1000000
+    max_entries_limit_per_query: 10000
+    max_global_streams_per_user: 10000
+
 
   querier:
-    max_concurrent: 8
+    max_concurrent: 10
+    query_timeout: 30m 
+    engine:
+      timeout: 30m
+
+  query_range:
+    parallelise_shardable_queries: false
+    align_queries_with_step: true
+    max_retries: 5
+    cache_results: true
+                                  ...
+  query_scheduler:
+    max_outstanding_requests_per_tenant: 10000000
+    grpc_client_config:
+      max_recv_msg_size: 1.048576e+11
+      max_send_msg_size: 1.048576e+11
+
 
   frontend_worker:
     match_max_concurrent: true
@@ -22,10 +52,13 @@ loki:
     chunk_encoding: snappy
 
   server:
-    http_server_read_timeout: 600s
-    http_server_write_timeout: 600s
-    grpc_server_max_recv_msg_size: 20971520  # 20MB
-    grpc_server_max_send_msg_size: 20971520  
+    http_listen_port: 3100
+    grpc_server_max_concurrent_streams: 500
+    grpc_server_max_recv_msg_size: 20971520 # 20MB
+    grpc_server_max_send_msg_size: 20971520
+    http_server_read_timeout: 30m
+    http_server_write_timeout: 30m
+    http_server_idle_timeout: 30m
 
   storage:
     type: "s3"
