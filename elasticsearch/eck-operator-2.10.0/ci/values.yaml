@@ -1,0 +1,4 @@
+# $ helm install elastic-operator elastic/eck-operator -n elastic-system --version 2.10.0 --create-namespace 
+
+# nameOverride is the short name for the deployment. Leave empty to let Helm generate a name using chart values.
+nameOverride: "elastic-operator"

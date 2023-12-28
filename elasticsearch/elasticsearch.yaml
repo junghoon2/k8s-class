@@ -1,0 +1,42 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: baas-dev-elasticsearch
+spec:
+  version: 8.11.3
+  volumeClaimDeletePolicy: DeleteOnScaledownOnly
+  nodeSets:
+  - name: es-all
+    count: 3
+    config:
+      node.store.allow_mmap: false
+    podTemplate:
+      spec:
+        initContainers:
+        - name: sysctl
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+        containers: # Define resource limits
+        - name: elasticsearch
+          resources:
+            requests:
+              cpu: 1 # No restrictions by default
+              memory: 2Gi # The default is 2Gi.
+            limits:
+              # cpu: # There is no definition here and no definition by default, so there is no limit
+              memory: 2Gi # The default is 2Gi.
+          env:
+          - name: ES_JAVA_OPTS # The default is 1Gi.
+            value: -Xms1g -Xmx1g
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data # Do not change this name unless you set up a volume mount for the data path.
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+        storageClassName: ebs-sc
