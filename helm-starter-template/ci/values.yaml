@@ -10,6 +10,12 @@ envs: {}
   # SERVER_HOST: default
   # ...
 
+secrets: {}
+  # 위에 {}를 지우고 <환경변수>: <값>을 쓰세요
+  # e.g. base64로 인코딩된 비밀번호를 넣으세요
+  # PostgreSQL_PASSWORD: cGFzc3dvcmQ=  # password
+  # ...
+
 # Networking
 container:
   port: 8080

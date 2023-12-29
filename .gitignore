@@ -22,3 +22,6 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# ignore secrets file
+secret.yaml
