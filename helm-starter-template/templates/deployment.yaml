@@ -43,10 +43,10 @@ spec:
               path: {{ .Values.probes.liveness.path }}
               port: http
           {{- end }}
-          {{- if .Values.probes.readiness.enabled }}}
+          {{- if .Values.probes.readiness.enabled }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.probes.readiness.path }}}
+              path: {{ .Values.probes.readiness.path }}
               port: http
           {{- end }}
           resources:

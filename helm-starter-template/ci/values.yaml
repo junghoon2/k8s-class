@@ -16,16 +16,26 @@ secrets: {}
   # PostgreSQL_PASSWORD: cGFzc3dvcmQ=  # password
   # ...
 
+# Replica count
+replicaCount: 2
+
+# HPA
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
 # Networking
 container:
-  port: 8080
+  port: 10080
 
 # Volume
 pvc:
   enabled: false
   accessModes:
-    - ReadWriteMany
-  storageClassName: "longhorn"
+    - ReadWriteOnce
+  storageClassName: "ebs-sc"
   size: 10Gi
 
 terminationGracePeriodSeconds: 30
@@ -55,11 +65,11 @@ serviceAccount:
 podAnnotations: {}
 
 # Security
-podSecurityContext: {}
-  # runAsNonRoot: true
-  # runAsUser: 1000
-  # runAsGroup: 3000
-  # fsGroup: 2000
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 2000
+  fsGroup: 3000
 
 securityContext:
   allowPrivilegeEscalation: false
@@ -87,17 +97,10 @@ ingress:
 # Conatiner resources
 resources:
   limits:
-  # memory: 128Mi
+    # memory: 128Mi
   requests:
     cpu: 10m
     memory: 128Mi
-
-# HPA
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
 
 # Scheduling
 nodeSelector: {}
