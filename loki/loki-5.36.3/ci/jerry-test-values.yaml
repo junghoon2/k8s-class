@@ -2,7 +2,7 @@
 
 serviceAccount:
   annotations:
-    "eks.amazonaws.com/role-arn": arn:aws:iam::516696002612:role/loki-jerry-test
+    "eks.amazonaws.com/role-arn": arn:aws:iam::${ACCOUNT_ID}:role/loki-jerry-test
 
 loki:
   auth_enabled: false
