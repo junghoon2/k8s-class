@@ -1,0 +1,23 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: api-dev
+  namespace: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-dev
+  pollingInterval: 10 # 10 sec
+  minReplicaCount: 2
+  maxReplicaCount: 5
+  fallback:
+    failureThreshold: 2
+    replicas: 3
+  triggers:
+  - type: cron
+    metadata:
+      timezone: Asia/Seoul
+      start: 37 10 4,5,6,7 1 *
+      end:  45 10 4,5,6,7 1 *
+      desiredReplicas: "4"
