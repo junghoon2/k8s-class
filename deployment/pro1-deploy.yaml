@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pro1
+  namespace: default
+  labels:
+    app: pro1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: pro1
+  template:    
+    metadata:
+      labels:
+        app: pro1
+    spec:
+      containers:
+      - name: pro1
+        image: 1pro/app
+        ports:
+          - name: http
+            containerPort: 8080
+        startupProbe:
+          httpGet:
+            path: "/startup"
+            port: http
+          failureThreshold: 10
+          periodSeconds: 10
+          successThreshold: 1
+        livenessProbe:
+          httpGet:
+            path: "/liveness"
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: "/readiness"
+            port: http
+          failureThreshold: 2
+          periodSeconds: 10
+          successThreshold: 1
