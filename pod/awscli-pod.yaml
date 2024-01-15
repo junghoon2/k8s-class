@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: awscli
+  namespace: backend
+  labels:
+    app: awscli
+spec:
+  serviceAccountName: sagemaker
+  containers:
+  - name: awscli
+    image: public.ecr.aws/aws-cli/aws-cli
+    command: ["sleep", "3600"]
