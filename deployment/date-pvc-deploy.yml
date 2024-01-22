@@ -23,10 +23,10 @@ spec:
         - "-c"
         - "while true; do echo ERROR; sleep 5; done"
         # - "while true; do date >> /pod-out.txt; sleep 5; done"
-      #     volumeMounts:
-      #       - name: date-vol # Volume 이름
-      #         mountPath: /data # Mount 이름
-      # volumes: # 어떤 Volume을 사용할 것인지
-      #   - name: date-vol
-      #     persistentVolumeClaim:
-      #       claimName: default-pvc
+          volumeMounts:
+            - name: date-vol # Volume 이름
+              mountPath: /data # Mount 이름
+      volumes: # 어떤 Volume을 사용할 것인지
+        - name: date-vol
+          persistentVolumeClaim:
+            claimName: default-pvc
