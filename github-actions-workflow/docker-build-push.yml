@@ -1,0 +1,41 @@
+name: Docker Build and Push
+
+on:
+  push:
+    tags:
+    - '*'  # 모든 태그에 대해 이 워크플로우를 트리거합니다.
+      
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ vars.AWS_REGION }}
+        role-to-assume: arn:aws:iam::516696002612:role/github-actions-ci 
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Extract tag name
+      id: extract_tag
+      shell: bash
+      run: echo "IMAGE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+    - name: echo image tag
+      run: echo $IMAGE_TAG
+
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}
