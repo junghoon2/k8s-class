@@ -18,7 +18,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "foo.selectorLabels" . | nindent 8 }}
+        {{- include "foo.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -35,39 +38,21 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.container.port }}
+              containerPort: {{ .Values.service.port }}
               protocol: TCP
-          {{- if .Values.probes.liveness.enabled }}
           livenessProbe:
-            httpGet:
-              path: {{ .Values.probes.liveness.path }}
-              port: http
-          {{- end }}
-          {{- if .Values.probes.readiness.enabled }}}
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
-            httpGet:
-              path: {{ .Values.probes.readiness.path }}}
-              port: http
-          {{- end }}
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          envFrom:
-          {{- if .Values.envs }}
-            - configMapRef:
-                name: {{ include "foo.fullname" . }}-env
-          {{- end }}
-          {{- if .Values.secrets }}
-            - secretRef:
-                name: {{ include "foo.fullname" . }}-secret
-          {{- end }}
-      {{- if .Values.pvc.enabled }}
+          {{- with .Values.volumeMounts }}
           volumeMounts:
-          - name: my-volume
-            mountPath: /data
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
       volumes:
-      - name: my-volume
-        persistentVolumeClaim:
-          claimName: {{ include "foo.fullname" . }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

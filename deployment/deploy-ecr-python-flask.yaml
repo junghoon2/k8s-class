@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-flask
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: python-flask
+  template:    
+    metadata:
+      labels:
+        app: python-flask
+    spec:
+      containers:
+      - name: python-flask
+        image: 516696002612.dkr.ecr.ap-northeast-2.amazonaws.com/python-flask:v0.1.3

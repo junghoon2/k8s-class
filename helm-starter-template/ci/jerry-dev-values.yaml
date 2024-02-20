@@ -1,0 +1,133 @@
+# Replica count
+replicaCount: 1
+
+image:
+  repository: pengbai/docker-supermario
+  pullPolicy: Always
+  tag: "latest" # 이미지 태그를 지정합니다.
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+configMap:
+  enabled: false
+  data:
+    # my-key: "my-value"
+    SPRING_PROFILES_ACTIVE: dev
+
+secret:
+  enabled: false
+  name: mysql-secret
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+# Networking
+container:
+  port: 8080
+
+metrics:
+  enabled: false # 메트릭을 사용할지 결정합니다
+  path: /metrics # 메트릭 경로를 지정합니다.
+
+serviceAccount:
+  create: false
+  automount: true
+
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+# Security
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 2000
+  fsGroup: 3000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+  - host: chart-example.local
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  tls: []
+
+# Conatiner resources
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    cpu: 10m
+    memory: 128Mi
+
+probes:
+  liveness:
+    enabled: false
+    path: /healthcheck/live # liveness 경로를 바꿀 수 있습니다 e.g. /healthz
+  readiness:
+    enabled: false
+    path: /healthcheck/ready # readiness 경로를 바꿀 수 있습니다 e.g. /healthz
+
+# HPA
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Volume
+pvc:
+  enabled: false
+  accessModes: "ReadWriteOnce"
+  storageClassName: "ebs-sc"
+  capacity: "1Gi"
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: my-volume
+#   persistentVolumeClaim:
+#     claimName: {{ .Release.Name }}-pvc
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: my-volume
+#   mountPath: "/data"
+
+nodeSelector: {}
+tolerations: []
+# tolerations:
+# - effect: NoSchedule
+#   key: node
+#   operator: Equal
+#   value: service
+
+affinity: {}
+# affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: node
+#           operator: In
+#           values:
+#           - service

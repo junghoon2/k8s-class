@@ -1,10 +1,10 @@
-{{- if .Values.envs }}
+{{- if .Values.configMap.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "<CHARTNAME>.fullname" . }}-env
+  name: {{ .Release.Name }}-configmap
 data:
-{{- range $key, $val := .Values.envs }}
-{{ $key | indent 2 }}: {{ $val | quote }}
-{{- end}}
-{{- end}}
+  {{- range $key, $value := .Values.configMap.data }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}

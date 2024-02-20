@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "<CHARTNAME>.fullname" . }}
+  name: {{ .Release.Name }}
   labels:
     {{- include "<CHARTNAME>.labels" . | nindent 4 }}
 spec:
@@ -33,6 +33,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh","-c","sleep 10"]
           ports:
             - name: http
               containerPort: {{ .Values.container.port }}
@@ -51,23 +55,22 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.configMap.enabled }}
           envFrom:
-          {{- if .Values.envs }}
             - configMapRef:
-                name: {{ include "<CHARTNAME>.fullname" . }}-env
+                name: {{ .Release.Name }}-configmap
           {{- end }}
-          {{- if .Values.secrets }}
+          {{- if .Values.secret.enabled }}
             - secretRef:
-                name: {{ include "<CHARTNAME>.fullname" . }}-secret
+                name: {{ .Values.secret.name }}
           {{- end }}
-      {{- if .Values.pvc.enabled }}
+          {{- with .Values.volumeMounts }}
           volumeMounts:
-          - name: my-volume
-            mountPath: /data
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
       volumes:
-      - name: my-volume
-        persistentVolumeClaim:
-          claimName: {{ include "<CHARTNAME>.fullname" . }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
