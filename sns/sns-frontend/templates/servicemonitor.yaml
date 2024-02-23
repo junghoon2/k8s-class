@@ -1,0 +1,14 @@
+{{- if .Values.metrics.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "sns-frontend.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "sns-frontend.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: http
+    path: {{ .Values.metrics.path }}
+    interval: 10s
+{{- end }}

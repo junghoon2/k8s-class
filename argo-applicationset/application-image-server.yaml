@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: image-server
+  namespace: argocd
+spec:
+  destination:
+    name: in-cluster
+    namespace: sns
+  project: default
+  source:
+    helm:
+      releaseName: image-server
+      valueFiles:
+      - ci/jerry-dev-values.yaml
+    path: sns/image-server
+    repoURL: https://github.com/junghoon2/k8s-class.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true

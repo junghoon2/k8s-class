@@ -1,0 +1,130 @@
+# Replica count
+replicaCount: 1
+
+image:
+  repository: 516696002612.dkr.ecr.ap-northeast-2.amazonaws.com/image-server  ##jheo/image-server
+  pullPolicy: Always
+  tag: "1.0.0" # 이미지 태그를 지정합니다.
+
+configMap:
+  enabled: true
+  data:
+    # my-key: "my-value"
+    SPRING_PROFILES_ACTIVE: dev
+    IMAGE_PATH: images
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+# Networking
+container:
+  port: 8080
+
+# Volume
+pvc:
+  enabled: true
+  accessModes: "ReadWriteOnce"
+  storageClassName: "ebs-sc"
+  storage: "10Gi"
+
+terminationGracePeriodSeconds: 60
+
+metrics:
+  enabled: false # 메트릭을 사용할지 결정합니다
+  path: /metrics # 메트릭 경로를 지정합니다.
+
+probes:
+  liveness:
+    enabled: true
+    path: /healthcheck/live # liveness 경로를 바꿀 수 있습니다 e.g. /healthz
+  readiness:
+    enabled: true
+    path: /healthcheck/ready # readiness 경로를 바꿀 수 있습니다 e.g. /healthz
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Authentication
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+# Security
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 2000
+  fsGroup: 3000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: sg-external
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/success-codes: '200,302'
+    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck/ready
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:${AWS_ACCOUNT_ID}:certificate/${CERTIFICATE_ID}
+    external-dns.alpha.kubernetes.io/hostname: sns.jerryljh.me
+  hosts:
+  - host: sns.jerryljh.me
+    paths:
+    - path: /api/images
+      pathType: Prefix
+  tls: []
+
+# Conatiner resources
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    cpu: 10m
+    memory: 128Mi
+
+# Scheduling
+
+# HPA
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# tolerations:
+# - effect: NoSchedule
+#   key: node
+#   operator: Equal
+#   value: service
+# affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: node
+#           operator: In
+#           values:
+#           - service

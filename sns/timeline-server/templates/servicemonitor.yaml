@@ -1,0 +1,14 @@
+{{- if .Values.metrics.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "timeline-server.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "timeline-server.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: http
+    path: {{ .Values.metrics.path }}
+    interval: 10s
+{{- end }}

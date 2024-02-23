@@ -114,12 +114,11 @@ volumeMounts: []
 #   mountPath: "/data"
 
 nodeSelector: {}
-tolerations: []
-# tolerations:
-# - effect: NoSchedule
-#   key: node
-#   operator: Equal
-#   value: service
+tolerations:
+- effect: NoSchedule
+  key: node
+  operator: Equal
+  value: service
 
 affinity: {}
 # affinity:
