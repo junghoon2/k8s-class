@@ -27,7 +27,7 @@ spec:
       source:
         repoURL: https://github.com/junghoon2/k8s-class.git 
         targetRevision: HEAD
-        path: sns/'{{ name }}'
+        path: 'sns/{{ name }}'
         helm:
           releaseName: '{{ name }}'
           valueFiles:
