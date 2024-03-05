@@ -1,6 +1,5 @@
-# s3
 resource "aws_s3_bucket" "this" {
-  bucket = "${var.s3_bucket_name}-${var.codename}"
+  bucket = "loki-jerry-dev-s3"
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {
