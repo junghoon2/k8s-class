@@ -1,8 +1,11 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-networking:
-  disableDefaultCNI: true # Disables the default CNI
 nodes:
 - role: control-plane
-- role: worker
-- role: worker
+- role: control-plane
+- role: control-plane
+networking:
+  podSubnet: "172.16.0.0/16"      # 클러스터에서 파드들이 사용할 네트워크 대역
+  serviceSubnet: "10.200.0.0/24"  # 클러스터에서 서비스가 사용할 네트워크 대역
+  disableDefaultCNI: true         # 기본 CNI(kubenet)을 사용하지 않음
+  kubeProxyMode: "ipvs"           # kubeproxy 모드를 ipvs 로 설정
