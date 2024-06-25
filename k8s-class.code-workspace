@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../kubekube-wallet"
 		}
 	],
 	"settings": {}
