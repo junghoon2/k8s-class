@@ -16,7 +16,6 @@ module "vpc" {
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
-    "karpenter.sh/discovery" = local.name
   }
 
   private_subnet_tags = {

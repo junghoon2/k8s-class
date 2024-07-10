@@ -19,9 +19,6 @@ module "eks_al2023" {
 
   eks_managed_node_groups = {
     karpenter = {
-      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      instance_types = ["m6i.large"]
-
       min_size = 2
       max_size = 5
       # This value is ignored after the initial creation
