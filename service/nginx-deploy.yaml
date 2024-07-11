@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-hello
-  namespace: default
+  # namespace: default
   labels:
     app: nginx
 spec:
@@ -18,3 +18,16 @@ spec:
       containers:
       - name: nginx
         image: nginxdemos/hello
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  selector:  # 선택해야 할 파드를 지정
+    app: nginx  # 파드 Label과 동일
+  type: ClusterIP
+  ports:
+  - name: tcp
+    port: 80
+    targetPort: 8080
