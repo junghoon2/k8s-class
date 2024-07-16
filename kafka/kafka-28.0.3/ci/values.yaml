@@ -1,0 +1,80 @@
+# helm upgrade -i -n backend kafka bitnami/kafka --version 19.0.2 -f values.yaml
+
+fullnameOverride: mmtc-dev-kafka
+
+enabled: true
+
+metrics:
+  kafka:
+    enabled: true
+  jmx:
+    enabled: true
+
+image:
+  registry: docker.io
+  repository: bitnami/kafka
+  tag: 3.5.1-debian-11-r75
+  config: |-
+    zookeeper.connect=ZOOKEEPER_SERVICE_NAME
+
+# Zookeepr config
+zookeeper:
+  enabled: true
+  fullnameOverride: mmtc-dev-zookeeper
+  replicaCount: 3
+  heapSize: 512
+  tickTime: 2000
+  initLimit: 10
+  syncLimit: 5
+  maxClientCnxns: 100
+  autopurge:
+    snapRetainCount: 3
+    purgeInterval: 1
+  podLabels:
+    app: mmtc-dev-zookeeper
+
+# Broker Count
+replicaCount: 3
+
+livenessProbe:
+  enabled: false
+
+podLabels:
+  app: mmtc-dev-kafka
+
+# Broker server.properties
+autoCreateTopicsEnable: true
+extraEnvVars:
+- name: KAFKA_CFG_BACKGROUND_THREADS
+  value: "16"
+deleteTopicEnable: true
+logRetentionHours: 168 # 7 days
+logRetentionBytes: _1073741824 # 100Gi
+numIoThreads: 16
+numNetworkThreads: 8
+numPartitions: 12
+numRecoveryThreadsPerDataDir: 8
+# dev:1, prod:3
+offsetsTopicReplicationFactor: 2
+socketReceiveBufferBytes: 204800
+socketRequestMaxBytes: _209715200
+socketSendBufferBytes: 204800
+# dev:1, prod:3
+transactionStateLogReplicationFactor: 2
+# dev:1, prod:2
+transactionStateLogMinIsr: 1
+defaultReplicationFactor: 2
+# Persistence parameters
+persistence:
+  enabled: true
+  size: 10Gi
+
+# Kubernetes resources
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    cpu: 60m
+    memory: 2Gi
+
+heapOpts: -Xmx1g -Xms1g
