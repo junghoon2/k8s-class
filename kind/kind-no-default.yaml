@@ -4,6 +4,7 @@ nodes:
 - role: control-plane
 - role: control-plane
 - role: control-plane
+- role: worker
 networking:
   podSubnet: "172.16.0.0/16"      # 클러스터에서 파드들이 사용할 네트워크 대역
   serviceSubnet: "10.200.0.0/24"  # 클러스터에서 서비스가 사용할 네트워크 대역
