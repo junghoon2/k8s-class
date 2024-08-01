@@ -25,3 +25,5 @@ override.tf.json
 
 # ignore secrets file
 secret.yaml
+
+# ignore code workspace

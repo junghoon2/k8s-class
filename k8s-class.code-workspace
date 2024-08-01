@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../kubekube-wallet"
+		},
+		{
+			"path": "../fastcampus/Part_7"
 		}
 	],
 	"settings": {}
