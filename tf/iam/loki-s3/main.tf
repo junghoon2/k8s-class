@@ -46,7 +46,7 @@ resource "aws_iam_role" "loki_jerry_test" {
   })
   description           = "loki role for jerry-test eks"
   force_detach_policies = false
-  managed_policy_arns   = ["arn:aws:iam::${ACCOUNT_ID}:policy/AWSS3EksLokiAccess"]
+  managed_policy_arns   = [aws_iam_policy.AWSS3EksLokiAccess.arn]
   max_session_duration  = 3600
   name                  = "loki-jerry-test"
   path                  = "/"
