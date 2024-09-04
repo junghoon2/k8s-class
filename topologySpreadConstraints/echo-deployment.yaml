@@ -6,7 +6,7 @@ metadata:
   labels:
     app: echo
 spec:
-  replicas: 10
+  replicas: 2
   selector:
     matchLabels:
       app: echo
@@ -17,24 +17,26 @@ spec:
     spec:
       containers:
       - name: echo
-        image: ealen/echo-server:0.7.0
+        image: ealen/echo-server:0.9.1
         resources:
           requests:
             cpu: 100m
             memory: 200Mi
       topologySpreadConstraints:
       - maxSkew: 1
-        topologyKey: "topology.kubernetes.io/zone"
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app: echo
-      - maxSkew: 1
         topologyKey: "kubernetes.io/hostname"
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
           matchLabels:
             app: echo
+        matchLabelKeys:
+        - pod-template-hash
+      tolerations:
+      - key: "node"
+        value: "service"
+        effect: "NoSchedule"
+      nodeSelector:
+        node: service # 특정 레이블을 가진 노드에 배포
       # affinity:
       #   podAntiAffinity:
       #     requiredDuringSchedulingIgnoredDuringExecution:
