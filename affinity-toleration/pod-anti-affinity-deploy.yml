@@ -6,7 +6,7 @@ metadata:
   labels:
     app: httpd
 spec:
-  replicas: 4
+  replicas: 3
   selector:
     matchLabels:
       app: httpd
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: httpd
-        image: httpd
+        image: httpd:2
         resources:
           # limits:
           #   memory: 512Mi
@@ -34,3 +34,11 @@ spec:
                 values:
                 - httpd
             topologyKey: kubernetes.io/hostname
+            # matchLabelKeys:
+            # - pod-template-hash
+      tolerations:
+      - key: "node"
+        value: "service"
+        effect: "NoSchedule"
+      nodeSelector:
+        node: service # 특정 레이블을 가진 노드에 배포

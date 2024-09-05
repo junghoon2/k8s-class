@@ -6,7 +6,7 @@ metadata:
   labels:
     app: echo
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: echo
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: echo
-        image: ealen/echo-server:0.9.1
+        image: ealen/echo-server:0.9.2
         resources:
           requests:
             cpu: 100m
@@ -29,8 +29,8 @@ spec:
         labelSelector:
           matchLabels:
             app: echo
-        matchLabelKeys:
-        - pod-template-hash
+        # matchLabelKeys:
+        # - pod-template-hash
       tolerations:
       - key: "node"
         value: "service"
