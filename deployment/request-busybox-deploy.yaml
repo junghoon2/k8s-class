@@ -22,10 +22,9 @@ spec:
         args: ["-c", "sleep inf"] 
         resources:
           limits:
-            cpu: 500m
             memory: 2Gi
           requests:
-            cpu: 500m
+            cpu: 1500m
             memory: 1Gi
       # affinity:
       #   podAntiAffinity:
