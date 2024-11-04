@@ -87,9 +87,6 @@ spec:
       {{- with .Values.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
-          labelSelector:
-            matchLabels:
-            {{- include "<CHARTNAME>.selectorLabels" . | nindent 14 }}
       {{- end }}
       {{- with .Values.volumes }}
       volumes:

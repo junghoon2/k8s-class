@@ -1,20 +1,26 @@
-# Replica count
-replicaCount: 1
+affinity: {}
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: node
+#           operator: In
+#           values:
+#           - service
 
-image:
-  repository: busybox
-  pullPolicy: Always
-  tag: "latest" # 이미지 태그를 지정합니다.
+# HPA
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-command:
-- "/bin/sh"
 args:
 - "-c"
 - "sleep inf"
+
+command:
+- "/bin/sh"
 
 configMap:
   enabled: false
@@ -22,21 +28,59 @@ configMap:
     # my-key: "my-value"
     SPRING_PROFILES_ACTIVE: dev
 
-secret:
+# Networking
+container:
+  port: 8080
+
+fullnameOverride: ""
+
+ingress:
   enabled: false
-  name: mysql-secret
+  className: ""
+  annotations: {}
+  hosts:
+  - host: chart-example.local
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  tls: []
+
+image:
+  repository: busybox
+  pullPolicy: Always
+  tag: "latest" # 이미지 태그를 지정합니다.
+
+imagePullSecrets: []
+
+metrics:
+  enabled: false # 메트릭을 사용할지 결정합니다
+  path: /metrics # 메트릭 경로를 지정합니다.
+
+nameOverride: ""
+
+nodeSelector: {}
 
 pdb:
   enabled: false
   minAvailable: 1
 
-# Networking
-container:
-  port: 8080
+podAnnotations: {}
+podLabels: {}
 
-metrics:
-  enabled: false # 메트릭을 사용할지 결정합니다
-  path: /metrics # 메트릭 경로를 지정합니다.
+# Replica count
+replicaCount: 2
+
+# Conatiner resources
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    cpu: 10m
+    memory: 128Mi
+
+secret:
+  enabled: false
+  name: mysql-secret
 
 serviceAccount:
   create: false
@@ -44,15 +88,27 @@ serviceAccount:
   annotations: {}
   name: ""
 
-podAnnotations: {}
-podLabels: {}
-
 # Security
 podSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 2000
   fsGroup: 3000
+
+probes:
+  liveness:
+    enabled: false
+    path: /healthcheck/live # liveness 경로를 바꿀 수 있습니다 e.g. /healthz
+  readiness:
+    enabled: false
+    path: /healthcheck/ready # readiness 경로를 바꿀 수 있습니다 e.g. /healthz
+
+# Volume
+pvc:
+  enabled: false
+  accessModes: "ReadWriteOnce"
+  storageClassName: "ebs-sc"
+  capacity: "1Gi"
 
 securityContext:
   allowPrivilegeEscalation: false
@@ -66,79 +122,29 @@ service:
   type: ClusterIP
   port: 80
 
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts:
-  - host: chart-example.local
-    paths:
-    - path: /
-      pathType: ImplementationSpecific
-  tls: []
-
-# Conatiner resources
-resources:
-  limits:
-    memory: 2Gi
-  requests:
-    cpu: 10m
-    memory: 128Mi
-
-probes:
-  liveness:
-    enabled: false
-    path: /healthcheck/live # liveness 경로를 바꿀 수 있습니다 e.g. /healthz
-  readiness:
-    enabled: false
-    path: /healthcheck/ready # readiness 경로를 바꿀 수 있습니다 e.g. /healthz
-
-# HPA
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-
-# Volume
-pvc:
-  enabled: false
-  accessModes: "ReadWriteOnce"
-  storageClassName: "ebs-sc"
-  capacity: "1Gi"
-
-# Additional volumes on the output Deployment definition.
-volumes: []
-# - name: my-volume
-#   persistentVolumeClaim:
-#     claimName: {{ .Release.Name }}-pvc
-
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts: []
-# - name: my-volume
-#   mountPath: "/data"
-
-nodeSelector: {}
-
-affinity: {}
-#   nodeAffinity:
-#     requiredDuringSchedulingIgnoredDuringExecution:
-#       nodeSelectorTerms:
-#       - matchExpressions:
-#         - key: node
-#           operator: In
-#           values:
-#           - service
-
-tolerations: {}
+tolerations: []
 # - effect: NoSchedule
 #   key: node
 #   operator: Equal
 #   value: service
 
 topologySpreadConstraints: []
-# - maxSkew: 1
-#   topologyKey: kubernetes.io/hostname
-#   whenUnsatisfiable: ScheduleAnyway
+# - labelSelector:
+#     matchLabels:
+#       app.kubernetes.io/name: {{ .Chart.Name }}
 #   matchLabelKeys:
 #     - pod-template-hash
+#   maxSkew: 1
+#   topologyKey: kubernetes.io/hostname
+#   whenUnsatisfiable: ScheduleAnyway
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: my-volume
+#   persistentVolumeClaim:
+#     claimName: {{ .Chart.Name }}-pvc
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: my-volume
+#   mountPath: "/data"
