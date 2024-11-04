@@ -2,13 +2,19 @@
 replicaCount: 1
 
 image:
-  repository: pengbai/docker-supermario
+  repository: busybox
   pullPolicy: Always
   tag: "latest" # 이미지 태그를 지정합니다.
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+command:
+- "/bin/sh"
+args:
+- "-c"
+- "sleep inf"
 
 configMap:
   enabled: false
@@ -35,7 +41,6 @@ metrics:
 serviceAccount:
   create: false
   automount: true
-
   annotations: {}
   name: ""
 
@@ -55,7 +60,7 @@ securityContext:
   capabilities:
     drop:
     - ALL
-  readOnlyRootFilesystem: false
+  readOnlyRootFilesystem: true
 
 service:
   type: ClusterIP
@@ -114,14 +119,8 @@ volumeMounts: []
 #   mountPath: "/data"
 
 nodeSelector: {}
-tolerations:
-- effect: NoSchedule
-  key: node
-  operator: Equal
-  value: service
 
 affinity: {}
-# affinity:
 #   nodeAffinity:
 #     requiredDuringSchedulingIgnoredDuringExecution:
 #       nodeSelectorTerms:
@@ -130,3 +129,16 @@ affinity: {}
 #           operator: In
 #           values:
 #           - service
+
+tolerations: {}
+# - effect: NoSchedule
+#   key: node
+#   operator: Equal
+#   value: service
+
+topologySpreadConstraints: []
+# - maxSkew: 1
+#   topologyKey: kubernetes.io/hostname
+#   whenUnsatisfiable: ScheduleAnyway
+#   matchLabelKeys:
+#     - pod-template-hash

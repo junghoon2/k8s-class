@@ -20,33 +20,41 @@ spec:
       labels:
         {{- include "<CHARTNAME>.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
+      {{- with .Values.affinity }}
+      affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "<CHARTNAME>.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+        - args:
+          {{ toYaml .Values.args | nindent 12 }}
+          command:
+          {{ toYaml .Values.command | nindent 12 }}
+          {{- if .Values.configMap.enabled }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-configmap
+          {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.secret.enabled }}
+            - secretRef:
+                name: {{ .Values.secret.name }}
+          {{- end }}
           lifecycle:
             preStop:
               exec:
                 command: ["/bin/sh","-c","sleep 10"]
-          ports:
-            - name: http
-              containerPort: {{ .Values.container.port }}
-              protocol: TCP
           {{- if .Values.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.liveness.path }}
               port: http
           {{- end }}
+          name: {{ .Chart.Name }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.container.port }}
+              protocol: TCP
           {{- if .Values.probes.readiness.enabled }}
           readinessProbe:
             httpGet:
@@ -55,32 +63,35 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.configMap.enabled }}
-          envFrom:
-            - configMapRef:
-                name: {{ .Release.Name }}-configmap
-          {{- end }}
-          {{- if .Values.secret.enabled }}
-            - secretRef:
-                name: {{ .Values.secret.name }}
-          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           {{- with .Values.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- with .Values.volumes }}
-      volumes:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      serviceAccountName: {{ include "<CHARTNAME>.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       {{- with .Values.tolerations }}
       tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+          labelSelector:
+            matchLabels:
+            {{- include "<CHARTNAME>.selectorLabels" . | nindent 14 }}
+      {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
