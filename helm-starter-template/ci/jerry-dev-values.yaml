@@ -16,11 +16,11 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
 
 args:
-- "-c"
-- "sleep inf"
+  - "-c"
+  - "sleep inf"
 
 command:
-- "/bin/sh"
+  - "/bin/sh"
 
 configMap:
   enabled: false
@@ -39,10 +39,10 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-  - host: chart-example.local
-    paths:
-    - path: /
-      pathType: ImplementationSpecific
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
   tls: []
 
 image:
@@ -115,36 +115,40 @@ securityContext:
   privileged: false
   capabilities:
     drop:
-    - ALL
+      - ALL
   readOnlyRootFilesystem: true
 
 service:
   type: ClusterIP
   port: 80
 
-tolerations: []
-# - effect: NoSchedule
-#   key: node
-#   operator: Equal
-#   value: service
+tolerations:
+  []
+  # - effect: NoSchedule
+  #   key: node
+  #   operator: Equal
+  #   value: service
 
-topologySpreadConstraints: []
-# - labelSelector:
-#     matchLabels:
-#       app.kubernetes.io/name: {{ .Chart.Name }}
-#   matchLabelKeys:
-#     - pod-template-hash
-#   maxSkew: 1
-#   topologyKey: kubernetes.io/hostname
+topologySpreadConstraints:
+  []
+  # - labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: {{ .Chart.Name }}
+  #   matchLabelKeys:
+  #     - pod-template-hash
+  #   maxSkew: 1
+  #   topologyKey: kubernetes.io/hostname
 #   whenUnsatisfiable: ScheduleAnyway
 
 # Additional volumes on the output Deployment definition.
-volumes: []
-# - name: my-volume
-#   persistentVolumeClaim:
-#     claimName: {{ .Chart.Name }}-pvc
+volumes:
+  []
+  # - name: my-volume
+  #   persistentVolumeClaim:
+  #     claimName: {{ .Chart.Name }}-pvc
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: []
-# - name: my-volume
-#   mountPath: "/data"
+volumeMounts:
+  []
+  # - name: my-volume
+  #   mountPath: "/data"

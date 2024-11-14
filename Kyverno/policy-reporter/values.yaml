@@ -1,0 +1,8 @@
+# helm install policy-reporter policy-reporter/policy-reporter -n kyverno --version 2.24.2 -f values.yaml
+# helm diff upgrade policy-reporter policy-reporter/policy-reporter -n kyverno --version 2.24.2 -f values.yaml
+ui:
+  enabled: true
+
+kyvernoPlugin:
+  enabled: true
+

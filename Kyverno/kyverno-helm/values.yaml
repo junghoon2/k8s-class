@@ -1,0 +1,11 @@
+# helm install kyverno kyverno/kyverno -n kyverno --create-namespace --version 3.2.7 -f values.yaml
+# helm diff upgrade kyverno kyverno/kyverno -n kyverno --version 3.2.7 -f values.yaml
+
+admissionController:
+  replicas: 3
+backgroundController:
+  replicas: 2
+cleanupController:
+  replicas: 2
+reportsController:
+  replicas: 2
