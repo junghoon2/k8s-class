@@ -1,0 +1,157 @@
+name: Build and Publish All
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+      - release
+      - main
+
+jobs:
+  setup:
+    name: SetUp
+    runs-on: ubuntu-latest
+    outputs:
+      timestamp: ${{ env.TIMESTAMP }}
+      scheme: ${{ env.SCHEME }}
+      kube-scheme: ${{ env.KUBE_SCHEME }}
+      branch: ${{ env.BRANCH }}
+    steps:
+      - name: setup timestamp
+        id: setup_timestamp
+        run: |
+          TIMESTAMP=$(TZ='Asia/Seoul' date +"%Y%m%dT%H%M%S.%N")
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+
+      - name: Set environment variables
+        run: |
+          echo "GIT_REF=${GITHUB_REF##*/}" >> $GITHUB_ENV
+      - name: Use environment variables
+        run: |
+          echo "GIT_REF=${GIT_REF}"
+      - name: Set environment variables from branches
+        id: set_branch_env
+        run: |
+          echo "GIT_REF=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          if [[ "${GIT_REF}" == develop ]]; then
+            echo "KUBE_SCHEME=dev" >> $GITHUB_ENV
+            echo "SCHEME=dev" >> $GITHUB_ENV
+            echo "BRANCH=develop" >> $GITHUB_ENV
+          elif [[ "${GIT_REF}" == release ]]; then
+            echo "KUBE_SCHEME=dev" >> $GITHUB_ENV
+            echo "SCHEME=sandbox" >> $GITHUB_ENV
+            echo "BRANCH=release" >> $GITHUB_ENV
+          elif [[ "${GIT_REF}" == main ]]; then
+            echo "KUBE_SCHEME=prod" >> $GITHUB_ENV
+            echo "SCHEME=prod" >> $GITHUB_ENV
+            echo "BRANCH=main" >> $GITHUB_ENV
+          else
+            echo "KUBE_SCHEME=dev" >> $GITHUB_ENV
+            echo "SCHEME=dev" >> $GITHUB_ENV
+            echo "BRANCH=develop" >> $GITHUB_ENV
+          fi
+      - name: Use environment variables from branches
+        run: |
+          echo "BRANCH=${GIT_REF}"
+          echo "KUBE_SCHEME=${KUBE_SCHEME}"
+          echo "SCHEME=${SCHEME}"
+
+  build-publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    needs: [setup]
+    strategy:
+      matrix:
+        api: [core-api, admin-api]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "corretto"
+      - name: Cache gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push a Docker image
+        run: |
+          ./gradlew :apps:${{ matrix.api }}:jib -Djib.container.creationTime=USE_CURRENT_TIMESTAMP
+        env:
+          DOCKER_TAG: ${{ needs.setup.outputs.timestamp }}
+          BRANCH: ${{ needs.setup.outputs.branch }}
+      - name: Cleanup gradle cache
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
+
+  deploy-service:
+    runs-on: ubuntu-latest
+    needs: [setup, build-publish]
+    steps:
+      - name: Checkout kubekube dive repository
+        uses: actions/checkout@v4
+        with:
+          repository: tf-dive/kubekube-dive
+          ref: main
+          token: ${{ secrets.KUBEKUBE_PAT }}
+          path: kubekube
+
+      - name: Set environment variables
+        run: |
+          echo "KUBE_NS=ns-vuddy-backend" >> $GITHUB_ENV
+
+      - name: yq core api
+        uses: mikefarah/yq@master
+        with:
+          cmd: TIMESTAMP=${{ needs.setup.outputs.timestamp }} yq -i '.image.tag = strenv(TIMESTAMP)' ./kubekube/vuddy-recipes/${{ needs.setup.outputs.kube-scheme }}/${{ env.KUBE_NS }}/vuddy/${{ needs.setup.outputs.scheme }}/core-api/ci/values.yaml
+      - name: yq admin api
+        uses: mikefarah/yq@master
+        with:
+          cmd: TIMESTAMP=${{ needs.setup.outputs.timestamp }} yq -i '.image.tag = strenv(TIMESTAMP)' ./kubekube/vuddy-recipes/${{ needs.setup.outputs.kube-scheme }}/${{ env.KUBE_NS }}/vuddy/${{ needs.setup.outputs.scheme }}/admin-api/ci/values.yaml
+      - name: yq scheduler
+        uses: mikefarah/yq@master
+        with:
+          cmd: TIMESTAMP=${{ needs.setup.outputs.timestamp }} yq -i '.image.tag = strenv(TIMESTAMP)' ./kubekube/vuddy-recipes/${{ needs.setup.outputs.kube-scheme }}/${{ env.KUBE_NS }}/vuddy/${{ needs.setup.outputs.scheme }}/scheduler/ci/values.yaml
+      # ougbox worker 배포 필요시 수동으로 처리
+      #- name: yq worker-outbox
+      #  uses: mikefarah/yq@master
+      #  with:
+      #    cmd: TIMESTAMP=${{ needs.setup.outputs.timestamp }} yq -i '.image.tag = strenv(TIMESTAMP)' ./kubekube/vuddy-recipes/${{ needs.setup.outputs.kube-scheme }}/${{ env.KUBE_NS }}/vuddy/${{ needs.setup.outputs.scheme }}/worker-outbox/ci/values.yaml
+      - name: yq worker-misc
+        uses: mikefarah/yq@master
+        with:
+          cmd: TIMESTAMP=${{ needs.setup.outputs.timestamp }} yq -i '.image.tag = strenv(TIMESTAMP)' ./kubekube/vuddy-recipes/${{ needs.setup.outputs.kube-scheme }}/${{ env.KUBE_NS }}/vuddy/${{ needs.setup.outputs.scheme }}/worker-misc/ci/values.yaml
+      - name: yq studio api
+        uses: mikefarah/yq@master
+        with:
+          cmd: TIMESTAMP=${{ needs.setup.outputs.timestamp }} yq -i '.image.tag = strenv(TIMESTAMP)' ./kubekube/vuddy-recipes/${{ needs.setup.outputs.kube-scheme }}/${{ env.KUBE_NS }}/vuddy/${{ needs.setup.outputs.scheme }}/studio-api/ci/values.yaml
+      # external api 배포 필요시 수동으로 처리
+      #- name: yq external api
+      #  uses: mikefarah/yq@master
+      #  with:
+      #    cmd: TIMESTAMP=${{ needs.setup.outputs.timestamp }} yq -i '.image.tag = strenv(TIMESTAMP)' ./kubekube/vuddy-recipes/${{ needs.setup.outputs.kube-scheme }}/${{ env.KUBE_NS }}/vuddy/${{ needs.setup.outputs.scheme }}/external-api/ci/values.yaml
+      - name: commit
+        run: |
+          TIMESTAMP=${{ needs.setup.outputs.timestamp }}
+          cd kubekube/vuddy-recipes/${{ needs.setup.outputs.kube-scheme }}/${{ env.KUBE_NS }}/vuddy/${{ needs.setup.outputs.scheme }}
+          pwd
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+
+          git add ./core-api/ci/values.yaml
+          git add ./admin-api/ci/values.yaml
+          git commit -am "Update vuddy images"
+          git push -u origin main
