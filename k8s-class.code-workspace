@@ -5,9 +5,6 @@
     },
     {
       "path": "../kubepractice"
-    },
-    {
-      "path": "../etc/cicd-gasida-study"
     }
   ],
   "settings": {}
