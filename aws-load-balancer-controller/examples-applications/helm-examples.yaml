@@ -1,27 +1,52 @@
-# Ingress
+# Ingress 리소스 설정을 정의합니다.
 ingress:
+  # Ingress 리소스 생성을 활성화합니다.
   enabled: true
+  # 이 Ingress를 관리할 Ingress Controller를 지정합니다. 여기서는 AWS Load Balancer Controller를 사용합니다.
   className: "alb"
+  # Ingress 리소스에 적용될 어노테이션들을 정의합니다. AWS Load Balancer Controller가 이 어노테이션들을 사용하여 ALB를 구성합니다.
   annotations:
+    # 사용할 ACM 인증서의 ARN을 지정합니다. HTTPS 트래픽 처리에 필요합니다.
     alb.ingress.kubernetes.io/certificate-arn: xxx
+    # ALB가 리스닝할 포트를 지정합니다. HTTP는 80, HTTPS는 443 포트를 사용합니다.
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80,"HTTPS": 443}]'
+    # HTTP 트래픽을 HTTPS로 리디렉션하는 규칙을 정의합니다.
     alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    # ALB의 스킴을 지정합니다. 'internal'은 내부용, 'internet-facing'은 외부용입니다.
     alb.ingress.kubernetes.io/scheme: internal ## Or internet-facing
+    # ALB의 타겟 타입을 지정합니다. 'ip'는 Pod IP를 직접 타겟으로 사용합니다.
     alb.ingress.kubernetes.io/target-type: ip
+    # ALB가 생성될 서브넷 ID 목록을 지정합니다.
     alb.ingress.kubernetes.io/subnets: XXX
+    # ALB에 적용할 보안 그룹 ID 목록을 지정합니다.
     alb.ingress.kubernetes.io/security-groups: XXX
+    # ALB가 타겟 그룹의 상태를 확인할 때 사용할 경로를 지정합니다.
     alb.ingress.kubernetes.io/healthcheck-path: /actuator/health/readiness
+    # ALB 헬스 체크 성공으로 간주할 HTTP 상태 코드를 지정합니다.
     alb.ingress.kubernetes.io/success-codes: "200"
+    # ALB 보안 그룹에 대한 그룹 이름을 지정합니다. 관련 보안 그룹 규칙을 묶는 데 사용될 수 있습니다.
     alb.ingress.kubernetes.io/group.name: internal-alb-sg
+    # ExternalDNS가 이 Ingress에 대해 생성할 DNS 레코드의 호스트 이름을 지정합니다.
     external-dns.alpha.kubernetes.io/hostname: admin.xxx.xx
+  # Ingress 규칙이 적용될 호스트 목록을 정의합니다.
   hosts:
+    # 트래픽을 라우팅할 호스트 이름을 지정합니다.
     - host: admin.xxx.xx
+      # 해당 호스트에 대한 경로 규칙 목록을 정의합니다.
       paths:
+        # 트래픽을 라우팅할 경로를 지정합니다. '/'는 모든 경로를 의미합니다.
         - path: /
+          # 경로 매칭 타입을 지정합니다. 'Prefix'는 해당 경로로 시작하는 모든 요청을 매칭합니다.
           pathType: Prefix
+          # 이 경로로 들어오는 트래픽을 전달할 백엔드 서비스를 정의합니다.
           backend:
+            # 백엔드 서비스 설정을 정의합니다.
             service:
+              # 백엔드 서비스의 이름을 지정합니다.
               name: admin-api-prod
+              # 백엔드 서비스의 포트를 지정합니다.
               port:
+                # 서비스가 노출하는 포트 번호를 지정합니다.
                 number: 80
+  # TLS 관련 설정을 정의합니다. AWS ALB에 인증서를 포함하여 추가할 필요가 없습니다.
   tls: []
