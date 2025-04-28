@@ -1,0 +1,27 @@
+# Ingress
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: xxx
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80,"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/scheme: internal ## Or internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/subnets: XXX
+    alb.ingress.kubernetes.io/security-groups: XXX
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health/readiness
+    alb.ingress.kubernetes.io/success-codes: "200"
+    alb.ingress.kubernetes.io/group.name: internal-alb-sg
+    external-dns.alpha.kubernetes.io/hostname: admin.xxx.xx
+  hosts:
+    - host: admin.xxx.xx
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: admin-api-prod
+              port:
+                number: 80
+  tls: []
