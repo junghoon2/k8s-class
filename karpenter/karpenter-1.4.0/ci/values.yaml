@@ -1,0 +1,16 @@
+# helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.4.0" --namespace "kube-system" -f ci/values.yaml
+
+# -- Global Settings to configure Karpenter
+settings:
+  # -- Cluster name.
+  clusterName: "eks-new-vpc-demo"
+  interruptionQueue: "eks-new-vpc-demo"
+
+controller:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 1000m
+      memory: 128Mi

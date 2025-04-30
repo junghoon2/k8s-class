@@ -210,6 +210,46 @@ module "eks" {
   }
 
   # --------------------------------------------------------------------------
+  # Fargate 프로필 설정
+  # --------------------------------------------------------------------------
+  # Karpenter 파드를 위한 Fargate 프로필을 정의합니다.
+  # 서버리스 컨테이너 실행 환경을 제공하여 노드 관리 부담을 없앱니다.
+  fargate_profiles = {
+    karpenter = {
+      name = "karpenter"
+      # Fargate 프로필이 사용할 서브넷 ID 목록 (프라이빗 서브넷 사용)
+      subnet_ids = module.vpc.private_subnets
+      
+      # Karpenter 파드를 식별하기 위한 셀렉터 설정
+      selectors = [
+        {
+          # kube-system 네임스페이스에서 app=karpenter 레이블이 있는 파드 대상
+          namespace = "kube-system"
+          labels = {
+            app = "karpenter"
+          }
+        }
+      ]
+      
+      # Fargate 파드 실행 역할에 추가할 정책 (선택 사항)
+      # 이 실행 역할은 Fargate에서 실행되는 Karpenter 파드에 권한을 부여합니다.
+      timeouts = {
+        create = "20m"  # 생성 시간 타임아웃
+        delete = "20m"  # 삭제 시간 타임아웃
+      }
+      
+      # Fargate 프로필에 적용할 태그
+      tags = merge(
+        var.tags,
+        {
+          "Name" = "${var.cluster_name}-fargate-karpenter"
+          "Purpose" = "Karpenter Controller"
+        }
+      )
+    }
+  }
+
+  # --------------------------------------------------------------------------
   # 기타 설정
   # --------------------------------------------------------------------------
   # EKS 클러스터 및 관련 리소스에 적용될 공통 태그입니다.
