@@ -71,23 +71,36 @@ module "vpc" {
   enable_dns_hostnames = true
 
   # --------------------------------------------------------------------------
-  # EKS 연동을 위한 서브넷 태그 설정
+  # EKS 연동 및 서브넷 이름 지정을 위한 태그 설정
   # --------------------------------------------------------------------------
   # EKS 클러스터가 서브넷을 인식하고 로드 밸런서(ELB) 등을 자동으로 프로비저닝할 수 있도록
   # 필수 태그들을 퍼블릭 서브넷과 프라이빗 서브넷에 각각 추가합니다.
-  public_subnet_tags = {
-    # 클러스터 오토스케일러나 로드 밸런서 컨트롤러 등이 이 태그를 사용하여 서브넷을 식별합니다.
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    # 이 태그는 AWS 로드 밸런서 컨트롤러가 외부 로드 밸런서(ALB/NLB)를 배치할 퍼블릭 서브넷을 식별하는 데 사용됩니다.
-    "kubernetes.io/role/elb"                  = "1"
-  }
+  # 또한, 'Name' 태그를 추가하여 각 서브넷에 명시적인 이름을 부여합니다. (모듈이 자동으로 AZ 접미사를 추가합니다)
+  public_subnet_tags = merge(
+    {
+      # 클러스터 오토스케일러나 로드 밸런서 컨트롤러 등이 이 태그를 사용하여 서브넷을 식별합니다.
+      "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+      # 이 태그는 AWS 로드 밸런서 컨트롤러가 외부 로드 밸런서(ALB/NLB)를 배치할 퍼블릭 서브넷을 식별하는 데 사용됩니다.
+      "kubernetes.io/role/elb"                  = "1"
+    },
+    {
+      # 퍼블릭 서브넷 이름 지정
+      Name = "${var.cluster_name}-public"
+    }
+  )
 
-  private_subnet_tags = {
-    # 클러스터 오토스케일러나 로드 밸런서 컨트롤러 등이 이 태그를 사용하여 서브넷을 식별합니다.
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    # 이 태그는 AWS 로드 밸런서 컨트롤러가 내부 로드 밸런서를 배치할 프라이빗 서브넷을 식별하는 데 사용됩니다.
-    "kubernetes.io/role/internal-elb"         = "1"
-  }
+  private_subnet_tags = merge(
+    {
+      # 클러스터 오토스케일러나 로드 밸런서 컨트롤러 등이 이 태그를 사용하여 서브넷을 식별합니다.
+      "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+      # 이 태그는 AWS 로드 밸런서 컨트롤러가 내부 로드 밸런서를 배치할 프라이빗 서브넷을 식별하는 데 사용됩니다.
+      "kubernetes.io/role/internal-elb"         = "1"
+    },
+    {
+      # 프라이빗 서브넷 이름 지정
+      Name = "${var.cluster_name}-private"
+    }
+  )
 
   # VPC 및 관련 리소스(서브넷, 라우팅 테이블 등)에 적용될 공통 태그입니다.
   # 기존의 공통 태그(var.tags)와 VPC 특정 태그를 병합하여 적용합니다.
