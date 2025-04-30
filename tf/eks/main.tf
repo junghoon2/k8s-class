@@ -129,13 +129,29 @@ module "eks" {
   # 클러스터에서 사용할 Kubernetes 버전입니다.
   cluster_version = var.cluster_version
 
+  # Give the Terraform identity admin access to the cluster
+  # which will allow resources to be deployed into the cluster
+  enable_cluster_creator_admin_permissions = true
+
+  # --------------------------------------------------------------------------
+  # API 서버 엔드포인트 접근 제어
+  # --------------------------------------------------------------------------
+  # true로 설정하면 인터넷에서 Kubernetes API 서버 엔드포인트에 접근할 수 있습니다.
+  # false로 설정하면 VPC 내부에서만 접근 가능합니다 (프라이빗 엔드포인트).
+  # 보안 요구 사항에 따라 신중하게 결정해야 합니다.
+  # 현재는 테스트 환경이므로 true로 설정
+  # 프로덕션 환경에서는 false로 설정하고, VPN 사용하는 것을 권장합니다.
+  cluster_endpoint_public_access = true
+  # public_access_cidrs = ["0.0.0.0/0"] # 필요시 특정 IP 대역만 접근 허용하도록 설정
+
   # EKS Addons
+  # 관리형 EKS 애드온을 정의합니다. 빈 객체({})는 기본 설정을 사용함을 의미합니다.
   cluster_addons = {
-    coredns                = {}
-    eks-pod-identity-agent = {}
-    kube-proxy             = {}
-    vpc-cni                = {}
-    aws-ebs-csi-driver     = {}
+    coredns                = {} # 클러스터 DNS 확인을 위한 CoreDNS
+    eks-pod-identity-agent = {} # EKS Pod Identity를 위한 에이전트 (최신 버전 EKS에서 IRSA 대체)
+    kube-proxy             = {} # 네트워크 프록시 및 서비스 로드 밸런싱
+    vpc-cni                = {} # AWS VPC 네트워킹 통합
+    aws-ebs-csi-driver     = {} # EBS 볼륨을 PV로 사용하기 위한 CSI 드라이버
   }
 
   # --------------------------------------------------------------------------
@@ -163,7 +179,7 @@ module "eks" {
       max_size     = var.eks_node_group_max_size
       desired_size = var.eks_node_group_desired_size
 
-      # 노드 그룹에서 사용할 AMI 유형입니다.
+      # 노드 그룹에서 사용할 AMI 유형입니다. (예: AL2_x86_64, BOTTLEROCKET_x86_64)
       ami_type       = "BOTTLEROCKET_x86_64"
       # 노드 그룹에서 사용할 EC2 인스턴스 유형 목록입니다.
       instance_types = var.eks_node_group_instance_types
@@ -172,23 +188,21 @@ module "eks" {
       # 노드 그룹의 인스턴스가 배치될 서브넷 ID 목록입니다. EKS 클러스터와 동일한 프라이빗 서브넷을 사용합니다.
       subnet_ids     = module.vpc.private_subnets
 
+      # 노드의 루트 볼륨 크기 (GiB)
       disk_size = 50
 
-      # This is not required - demonstrates how to pass additional configuration
+      # Bottlerocket AMI 사용 시 추가 설정 예시 (선택 사항)
       # Ref https://bottlerocket.dev/en/os/1.19.x/api/settings/
       bootstrap_extra_args = <<-EOT
-        # The admin host container provides SSH access and runs with "superpowers".
-        # It is disabled by default, but can be disabled explicitly.
+        # 관리 컨테이너(SSH 접근) 비활성화
         [settings.host-containers.admin]
         enabled = false
 
-        # The control host container provides out-of-band access via SSM.
-        # It is enabled by default, and can be disabled if you do not expect to use SSM.
-        # This could leave you with no way to access the API and change settings on an existing node!
+        # 제어 컨테이너(SSM 접근) 활성화 (기본값)
         [settings.host-containers.control]
         enabled = true
 
-        # extra args added
+        # 커널 보안 설정 예시
         [settings.kernel]
         lockdown = "integrity"
       EOT
