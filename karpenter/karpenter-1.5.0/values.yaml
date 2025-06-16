@@ -1,0 +1,43 @@
+# helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.0" --namespace "kube-system" -f values.yaml
+# helm upgrade karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.0" --namespace "kube-system" -f values.yaml
+
+# -- Global Settings to configure Karpenter
+settings:
+  # -- Cluster name.
+  clusterName: "eks-prod-cluster"
+  interruptionQueue: "eks-prod-cluster"
+  featureGates:
+    spotToSpotConsolidation: true
+
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::516696002612:role/eks-prod-cluster-karpenter"
+
+serviceMonitor:
+  enabled: true
+
+# -- Affinity rules for scheduling the pod. If an explicit label selector is not provided for pod affinity or pod anti-affinity one will be created from the pod selector labels.
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: karpenter.sh/nodepool
+              operator: DoesNotExist
+        - matchExpressions:
+            - key: eks.amazonaws.com/compute-type
+              operator: NotIn
+              values:
+                - fargate
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - topologyKey: "kubernetes.io/hostname"

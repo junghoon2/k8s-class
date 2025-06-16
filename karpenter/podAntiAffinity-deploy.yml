@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd
+  namespace: default
+  labels:
+    app: httpd
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: httpd
+  template:
+    metadata:
+      labels:
+        app: httpd
+    spec:
+      containers:
+        - name: httpd
+          image: httpd
+          resources:
+            # limits:
+            #   memory: 512Mi
+            requests:
+              cpu: 300m
+              memory: 128Mi
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - httpd
+              topologyKey: kubernetes.io/hostname

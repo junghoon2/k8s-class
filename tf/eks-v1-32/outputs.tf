@@ -1,61 +1,26 @@
-output "cluster_name" {
-  description = "Name of the EKS cluster"
-  value       = module.eks.cluster_name
-}
+/*
+ * 출력 변수 정의 파일
+ * 
+ * 이 파일은 Terraform 적용 후 반환될 중요한 값들을 정의합니다.
+ * 다른 Terraform 모듈에서 참조하거나, CI/CD 파이프라인에서 활용할 수 있습니다.
+ * 
+ * 출력 구성:
+ * - VPC 및 네트워킹 정보
+ * - EKS 클러스터 접속 정보
+ * - IRSA 구성을 위한 OIDC 정보
+ * - kubectl 설정 명령어
+ * 
+ * 사용 예시:
+ * terraform output cluster_endpoint
+ * terraform output -raw configure_kubectl | bash
+ */
 
-output "cluster_endpoint" {
-  description = "Endpoint for EKS control plane"
-  value       = module.eks.cluster_endpoint
-}
-
-output "cluster_version" {
-  description = "The Kubernetes version for the EKS cluster"
-  value       = module.eks.cluster_version
-}
-
-output "cluster_platform_version" {
-  description = "Platform version for the EKS cluster"
-  value       = module.eks.cluster_platform_version
-}
-
-output "cluster_security_group_id" {
-  description = "Cluster security group that was created by Amazon EKS for the cluster"
-  value       = module.eks.cluster_security_group_id
-}
-
-output "cluster_primary_security_group_id" {
-  description = "Cluster primary security group ID"
-  value       = module.eks.cluster_primary_security_group_id
-}
-
-output "cluster_arn" {
-  description = "The Amazon Resource Name (ARN) of the cluster"
-  value       = module.eks.cluster_arn
-}
-
-output "cluster_certificate_authority_data" {
-  description = "Base64 encoded certificate data required to communicate with the cluster"
-  value       = module.eks.cluster_certificate_authority_data
-}
-
-output "cluster_oidc_issuer_url" {
-  description = "The URL on the EKS cluster for the OpenID Connect identity provider"
-  value       = module.eks.cluster_oidc_issuer_url
-}
-
-output "oidc_provider_arn" {
-  description = "The ARN of the OIDC Provider if `enable_irsa = true`"
-  value       = module.eks.oidc_provider_arn
-}
-
-output "node_groups" {
-  description = "Map of attribute maps for all EKS managed node groups created"
-  value       = module.eks.eks_managed_node_groups
-  sensitive   = true
-}
+################################################################################
+# VPC Outputs
+################################################################################
 
 output "vpc_id" {
-  description = "ID of the VPC where the cluster and its nodes will be provisioned"
+  description = "ID of the VPC where the cluster security group will be provisioned"
   value       = module.vpc.vpc_id
 }
 
@@ -79,34 +44,107 @@ output "intra_subnets" {
   value       = module.vpc.intra_subnets
 }
 
-output "aws_load_balancer_controller_role_arn" {
-  description = "IAM role ARN for AWS Load Balancer Controller"
-  value       = module.aws_load_balancer_controller_irsa.iam_role_arn
+################################################################################
+# EKS Cluster Outputs
+################################################################################
+
+output "cluster_arn" {
+  description = "The Amazon Resource Name (ARN) of the cluster"
+  value       = module.eks_al2023.cluster_arn
 }
 
-output "karpenter_role_arn" {
-  description = "IAM role ARN for Karpenter"
-  value       = module.karpenter_irsa.iam_role_arn
+output "cluster_certificate_authority_data" {
+  description = "Base64 encoded certificate data required to communicate with the cluster"
+  value       = module.eks_al2023.cluster_certificate_authority_data
 }
 
-output "external_dns_role_arn" {
-  description = "IAM role ARN for External DNS"
-  value       = module.external_dns_irsa.iam_role_arn
+output "cluster_endpoint" {
+  description = "Endpoint for your Kubernetes API server"
+  value       = module.eks_al2023.cluster_endpoint
 }
 
-# KMS Key outputs
-output "kms_key_arn" {
-  description = "The Amazon Resource Name (ARN) of the KMS key for EKS"
-  value       = aws_kms_key.eks.arn
+output "cluster_id" {
+  description = "The ID of the EKS cluster. Note: currently a value is returned only for local EKS clusters created on Outposts"
+  value       = module.eks_al2023.cluster_id
 }
 
-output "ebs_kms_key_arn" {
-  description = "The Amazon Resource Name (ARN) of the KMS key for EBS"
-  value       = aws_kms_key.ebs.arn
+output "cluster_name" {
+  description = "The name of the EKS cluster"
+  value       = module.eks_al2023.cluster_name
 }
 
+output "cluster_oidc_issuer_url" {
+  description = "The URL on the EKS cluster for the OpenID Connect identity provider"
+  value       = module.eks_al2023.cluster_oidc_issuer_url
+}
+
+output "cluster_version" {
+  description = "The Kubernetes version for the EKS cluster"
+  value       = module.eks_al2023.cluster_version
+}
+
+output "cluster_platform_version" {
+  description = "Platform version for the EKS cluster"
+  value       = module.eks_al2023.cluster_platform_version
+}
+
+output "cluster_status" {
+  description = "Status of the EKS cluster. One of `CREATING`, `ACTIVE`, `DELETING`, `FAILED`"
+  value       = module.eks_al2023.cluster_status
+}
+
+output "cluster_primary_security_group_id" {
+  description = "Cluster security group that was created by Amazon EKS for the cluster"
+  value       = module.eks_al2023.cluster_primary_security_group_id
+}
+
+################################################################################
+# EKS Node Group Outputs
+################################################################################
+
+output "eks_managed_node_groups" {
+  description = "Map of attribute maps for all EKS managed node groups created"
+  value       = module.eks_al2023.eks_managed_node_groups
+}
+
+output "eks_managed_node_groups_autoscaling_group_names" {
+  description = "List of the autoscaling group names created by EKS managed node groups"
+  value       = module.eks_al2023.eks_managed_node_groups_autoscaling_group_names
+}
+
+################################################################################
+# OIDC Provider Outputs
+################################################################################
+
+output "oidc_provider" {
+  description = "The OpenID Connect identity provider (issuer URL without leading `https://`)"
+  value       = module.eks_al2023.oidc_provider
+}
+
+output "oidc_provider_arn" {
+  description = "The ARN of the OIDC Provider if enabled_irsa = true"
+  value       = module.eks_al2023.oidc_provider_arn
+}
+
+################################################################################
+# Additional Outputs
+################################################################################
+
+output "region" {
+  description = "AWS region"
+  value       = local.region
+}
+
+output "azs" {
+  description = "A list of availability zones specified as argument to this module"
+  value       = local.azs
+}
+
+################################################################################
 # kubectl config command
-output "kubectl_config_command" {
-  description = "kubectl config command to connect to the cluster"
-  value       = "aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name}"
-} 
+################################################################################
+
+output "configure_kubectl" {
+  description = "Configure kubectl: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
+  value       = "aws eks --region ${local.region} update-kubeconfig --name ${module.eks_al2023.cluster_name}"
+}

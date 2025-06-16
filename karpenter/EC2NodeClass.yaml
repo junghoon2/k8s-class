@@ -1,24 +1,27 @@
 # cat EC2NodeClass.yaml | envsubst | kubectl apply -f -
 
-apiVersion: karpenter.k8s.aws/v1beta1
+apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: default
 spec:
-  amiFamily: AL2 # Amazon Linux 2
-  role: "KarpenterNodeRole-${CLUSTER_NAME}" # replace with your cluster name
+  amiFamily: AL2023 # Amazon Linux 2023
+  amiSelectorTerms:
+    - owner: "amazon" # Amazon 공식 AMI만
+      name: "amazon-eks-node-al2023-x86_64-standard-1.32-*" # 최신 버전 자동
+  role: "eks-prod-cluster-karpenter-node-role" # replace with your cluster name
   subnetSelectorTerms:
-  - tags:
-      karpenter.sh/discovery: "${CLUSTER_NAME}" # replace with your cluster name
+    - tags:
+        karpenter.sh/discovery: "eks-prod-cluster" # replace with your cluster name
   securityGroupSelectorTerms:
-  - tags:
-      karpenter.sh/discovery: "${CLUSTER_NAME}" # replace with your cluster name
+    - tags:
+        karpenter.sh/discovery: "eks-prod-cluster" # replace with your cluster name
   blockDeviceMappings:
-  - deviceName: /dev/xvda
-    ebs:
-      volumeSize: 100Gi
-      volumeType: gp3
-      iops: 3000
-      encrypted: true
-      deleteOnTermination: true
-      throughput: 125
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 80Gi
+        volumeType: gp3
+        iops: 3000
+        encrypted: true
+        deleteOnTermination: true
+        throughput: 125
