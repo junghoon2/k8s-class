@@ -1,0 +1,10 @@
+# helm upgrade --install external-dns external-dns/external-dns --values values.yaml  --namespace kube-system --version 1.16.1
+
+provider:
+  name: aws
+
+serviceAccount:
+  # -- If `true`, create a new `ServiceAccount`.
+  create: false
+  # -- (string) If this is set and `serviceAccount.create` is `true` this will be used for the created `ServiceAccount` name, if set and `serviceAccount.create` is `false` then this will define an existing `ServiceAccount` to use.
+  name: external-dns
