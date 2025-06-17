@@ -1,0 +1,15 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sqs:GetQueueUrl",
+        "sqs:GetQueueAttributes",
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage"
+      ],
+      "Resource": "arn:aws:sqs:ap-northeast-2:516696002612:Karpenter-eks-test"
+    }
+  ]
+}

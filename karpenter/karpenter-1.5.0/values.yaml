@@ -1,11 +1,17 @@
 # helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.0" --namespace "kube-system" -f values.yaml
-# helm upgrade karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.0" --namespace "kube-system" -f values.yaml
+# helm diff upgrade karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.0" --namespace "kube-system" -f values.yaml
+
+# 헬름 설치 전 SQS 큐 생성
+# aws sqs create-queue --queue-name "Karpenter-eks-test" --region ap-northeast-2 --profile playground
+
+# Role에 SQS 정책 추가
+# aws iam put-role-policy --role-name KarpenterControllerRole-eks-test --policy-name SQSInterruptionAccess --policy-document file://sqs-policy.json --profile playground
 
 # -- Global Settings to configure Karpenter
 settings:
   # -- Cluster name.
-  clusterName: "eks-prod-cluster"
-  interruptionQueue: "eks-prod-cluster"
+  clusterName: "eks-test"
+  interruptionQueue: "Karpenter-eks-test" # SQS 큐가 없으면 비활성화
   featureGates:
     spotToSpotConsolidation: true
 
@@ -20,11 +26,10 @@ controller:
 
 serviceAccount:
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::516696002612:role/eks-prod-cluster-karpenter"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::516696002612:role/KarpenterControllerRole-eks-test"
 
 serviceMonitor:
   enabled: true
-
 # -- Affinity rules for scheduling the pod. If an explicit label selector is not provided for pod affinity or pod anti-affinity one will be created from the pod selector labels.
 affinity:
   nodeAffinity:

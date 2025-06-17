@@ -44,12 +44,4 @@ locals {
   cluster_endpoint_public_access  = true
   cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
 
-  # 모든 리소스에 적용할 공통 태그
-  tags = {
-    GithubRepo = "terraform-aws-eks"
-    GithubOrg  = "terraform-aws-modules"
-    Terraform   = "true"
-    Owner       = "Jerry"
-    Team        = "tech/devops"
-  }
 }

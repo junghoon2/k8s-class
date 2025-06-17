@@ -9,13 +9,13 @@ spec:
   amiSelectorTerms:
     - owner: "amazon" # Amazon 공식 AMI만
       name: "amazon-eks-node-al2023-x86_64-standard-1.32-*" # 최신 버전 자동
-  role: "eks-prod-cluster-karpenter-node-role" # replace with your cluster name
+  role: "KarpenterNodeRole-eks-test" # replace with your cluster name
   subnetSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "eks-prod-cluster" # replace with your cluster name
+        karpenter.sh/discovery: "eks-test" # replace with your cluster name
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "eks-prod-cluster" # replace with your cluster name
+        karpenter.sh/discovery: "eks-test" # replace with your cluster name
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
