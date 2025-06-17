@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-nginx
+  namespace: default
+  labels:
+    app: test-nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: test-nginx
+  template:
+    metadata:
+      labels:
+        app: test-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+          volumeMounts:
+            - name: html-content
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: html-content
+          configMap:
+            name: test-nginx-content
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-nginx-content
+  namespace: default
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Ingress Test Server</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f4; }
+            .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #333; }
+            .info { background: #e8f4fd; padding: 15px; border-radius: 4px; margin: 20px 0; }
+            .timestamp { color: #666; font-size: 0.9em; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 Ingress Test Server</h1>
+            <div class="info">
+                <p><strong>Server:</strong> nginx/1.25-alpine</p>
+                <p><strong>Purpose:</strong> Ingress functionality testing</p>
+                <p><strong>Hostname:</strong> <span id="hostname"></span></p>
+                <p class="timestamp">Loaded at: <span id="timestamp"></span></p>
+            </div>
+            <p>✅ If you can see this page, your ingress is working correctly!</p>
+        </div>
+        <script>
+            document.getElementById('hostname').textContent = window.location.hostname;
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        </script>
+    </body>
+    </html>
