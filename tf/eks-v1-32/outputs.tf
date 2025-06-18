@@ -130,18 +130,14 @@ output "oidc_provider_arn" {
 # Fargate Profile Outputs
 ################################################################################
 
-# output "karpenter_fargate_profile" {
-#   description = "Karpenter Fargate profile information"
-#   value = {
-#     profile_arn  = module.eks_al2023.fargate_profiles["karpenter"].fargate_profile_arn
-#     profile_id   = module.eks_al2023.fargate_profiles["karpenter"].fargate_profile_id
-#     status       = module.eks_al2023.fargate_profiles["karpenter"].fargate_profile_status
-#   }
+# output "fargate_profile_id" {
+#   description = "Fargate profile information"
+#   value       = module.fargate_profile.fargate_profile_id
 # }
 
-# output "fargate_profiles" {
-#   description = "All Fargate profiles created"
-#   value       = module.eks_al2023.fargate_profiles
+# output "iam_role_name" {
+#   description = "IAM role name"
+#   value       = module.fargate_profile.iam_role_name
 # }
 
 ################################################################################

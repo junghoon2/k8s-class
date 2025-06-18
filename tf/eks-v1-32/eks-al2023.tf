@@ -34,32 +34,6 @@ module "eks_al2023" {
   vpc_id     = module.vpc.vpc_id         # VPC ID
   subnet_ids = module.vpc.private_subnets # Private 서브넷에만 배치 (보안)
 
-  # Fargate Profile 구성
-  # Karpenter 컨트롤러를 서버리스로 실행
-  # fargate_profiles = {
-  #   karpenter = {
-  #     name = "karpenter-fargate"
-      
-  #     # Karpenter 네임스페이스의 모든 Pod를 Fargate에서 실행
-  #     selectors = [
-  #       {
-  #         namespace = "karpenter"  # Karpenter 네임스페이스 전체
-  #       }
-  #     ]
-      
-  #     # Fargate용 서브넷 (Private만 사용 가능)
-  #     subnet_ids = module.vpc.private_subnets
-      
-  #     # 태그 설정
-  #     tags = merge(var.tags, {
-  #       Profile     = "karpenter-fargate"
-  #       Type        = "serverless"
-  #       Component   = "karpenter-controller"
-  #       Environment = "eks-cluster"
-  #     })
-  #   }
-  # }
-
   # 클러스터 엔드포인트 설정 - 보안을 위해 Private만 활성화
   # 주의: 이 설정으로 인해 VPC 외부에서는 클러스터 접근 불가 (VPN/Bastion 필요)
   cluster_endpoint_private_access = local.cluster_endpoint_private_access
@@ -112,3 +86,17 @@ module "eks_al2023" {
   # 공통 태그 적용
   tags = var.tags
 }
+
+# module "fargate_profile" {
+#   source = "terraform-aws-modules/eks/aws//modules/fargate-profile"
+
+#   name         = "karpenter-fargate"
+#   cluster_name = module.eks_al2023.cluster_name
+
+#   subnet_ids = module.vpc.private_subnets
+#   selectors = [{
+#     namespace = "karpenter"
+#   }]
+
+#   tags = var.tags
+# }

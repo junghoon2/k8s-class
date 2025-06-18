@@ -1,0 +1,18 @@
+apiVersion: v2
+name: starter-template
+description: A production-ready Helm chart starter template
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+home: https://github.com/your-org/your-app
+sources:
+  - https://github.com/your-org/your-app
+maintainers:
+  - name: DevOps Team
+    email: devops@your-org.com
+keywords:
+  - microservice
+  - web-app
+  - starter
+annotations:
+  category: Application

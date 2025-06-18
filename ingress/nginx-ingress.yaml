@@ -18,7 +18,7 @@ metadata:
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
 
     # 도메인 설정 (필요시 수정)
-    external-dns.alpha.kubernetes.io/hostname: nginx.jerryljh.me
+    external-dns.alpha.kubernetes.io/hostname: nginx.joylim.me
 
     # 추가 ALB 설정
     alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=60
@@ -28,7 +28,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: nginx.jerryljh.me
+    - host: nginx.joylim.me
       http:
         paths:
           - path: /

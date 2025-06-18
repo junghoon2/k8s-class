@@ -33,6 +33,7 @@ module "vpc" {
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1  # Internal LB 배치용
+    "karpenter.sh/discovery" = local.name # Karpenter 디스커버리 태그
   }
 
   # DNS 설정 - EKS에서 필수
