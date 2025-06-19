@@ -135,6 +135,52 @@ hpa:
   targetMemoryUtilizationPercentage: 80
 ```
 
+### PVC (Persistent Volume) 설정
+
+영구 스토리지가 필요한 애플리케이션을 위한 PVC 설정:
+
+```yaml
+persistence:
+  enabled: true
+  volumes:
+    # 데이터 저장용 PVC
+    - name: data
+      size: 10Gi
+      accessModes:
+        - ReadWriteOnce
+      storageClass: "gp3" # AWS EKS 기본 StorageClass
+      mountPath: /data
+
+    # 로그 저장용 PVC
+    - name: logs
+      size: 5Gi
+      accessModes:
+        - ReadWriteOnce
+      storageClass: "gp3"
+      mountPath: /var/log/app
+
+    # 공유 스토리지 (EFS)
+    - name: shared
+      size: 1Gi
+      accessModes:
+        - ReadWriteMany
+      storageClass: "efs"
+      mountPath: /shared
+```
+
+**사용 예제:**
+
+```bash
+# PVC 포함한 배포
+helm install my-app . -f examples/values-with-pvc.yaml
+
+# PVC 상태 확인
+kubectl get pvc
+
+# Pod의 볼륨 마운트 확인
+kubectl describe pod <pod-name>
+```
+
 ### Ingress 설정
 
 ```yaml

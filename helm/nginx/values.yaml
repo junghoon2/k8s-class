@@ -12,7 +12,7 @@ global:
 
 # 애플리케이션 설정
 app:
-  name: starter-app
+  name: nginx-app
   version: "1.0.0"
 
 # 이미지 설정
@@ -48,7 +48,6 @@ deployment:
   containerSecurityContext:
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
-    runAsNonRoot: true
     capabilities:
       drop:
         - ALL
@@ -168,11 +167,11 @@ rbac:
 
 # ConfigMap 설정 (설정 데이터)
 configMap:
-  enabled: true
+  enabled: false
   data:
     # my-key: "my-value"
-    SPRING_PROFILES_ACTIVE: dev
-    # Or use app.properties file for nginx example
+    # SPRING_PROFILES_ACTIVE: dev
+    # Or use app.properties file
     # app.properties: |
     #   server.port=8080
     #   management.endpoints.web.exposure.include=health,info,metrics
@@ -244,17 +243,25 @@ persistence:
       mountPath: /var/log/app
       annotations: {}
 
-# 볼륨 마운트
+# 볼륨 마운트 설정
 volumeMounts:
+  - name: nginx-config
+    mountPath: /etc/nginx/nginx.conf
+    subPath: nginx.conf
   - name: tmp
     mountPath: /tmp
-  # PVC 볼륨들은 deployment.yaml에서 자동으로 추가됩니다
+  - name: var-cache
+    mountPath: /var/cache/nginx
 
-# 볼륨
+# 볼륨 설정
 volumes:
+  - name: nginx-config
+    configMap:
+      name: nginx-config
   - name: tmp
     emptyDir: {}
-  # PVC 볼륨들은 deployment.yaml에서 자동으로 추가됩니다
+  - name: var-cache
+    emptyDir: {}
 
 # 환경 변수
 env:
