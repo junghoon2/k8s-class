@@ -1,0 +1,69 @@
+{{- if .Values.rbac.create }}
+{{- if .Values.rbac.clusterRole }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "starter-template.fullname" . }}
+  labels:
+    {{- include "starter-template.labels" . | nindent 4 }}
+  {{- with (include "starter-template.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.rbac.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "starter-template.fullname" . }}
+  labels:
+    {{- include "starter-template.labels" . | nindent 4 }}
+  {{- with (include "starter-template.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "starter-template.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "starter-template.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "starter-template.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "starter-template.labels" . | nindent 4 }}
+  {{- with (include "starter-template.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+rules:
+  {{- toYaml .Values.rbac.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "starter-template.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "starter-template.labels" . | nindent 4 }}
+  {{- with (include "starter-template.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "starter-template.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "starter-template.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }} 

@@ -1,0 +1,275 @@
+# starter-template의 기본 설정값
+# YAML 형식으로 작성된 파일입니다.
+# 템플릿에 전달될 변수들을 정의합니다.
+
+global:
+  # 글로벌 이미지 레지스트리
+  imageRegistry: ""
+  # 글로벌 이미지 pull secrets
+  imagePullSecrets: []
+  # 글로벌 스토리지 클래스
+  storageClass: ""
+
+# 애플리케이션 설정
+app:
+  name: starter-app
+  version: "1.0.0"
+
+# 이미지 설정
+image:
+  registry: docker.io
+  repository: nginx
+  tag: "1.25-alpine"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# 배포(Deployment) 설정
+deployment:
+  replicaCount: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Pod 설정
+  pod:
+    labels: {}
+    annotations: {}
+
+  # 보안 컨텍스트 (Pod 레벨)
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+    fsGroup: 65534
+
+  # 컨테이너 보안 컨텍스트
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+
+  # 리소스 제한 및 요청
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+  # 생존성 및 준비성 프로브
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  # 시작 프로브 (느리게 시작하는 컨테이너용)
+  # startupProbe:
+  #   httpGet:
+  #     path: /health
+  #     port: http
+  #   initialDelaySeconds: 10
+  #   periodSeconds: 10
+  #   timeoutSeconds: 5
+  #   failureThreshold: 30
+
+  # 노드 선택자
+  nodeSelector: {}
+
+  # 톨러레이션 (특정 노드 Taint 허용)
+  tolerations: []
+
+  # 어피니티 (Pod 배치 규칙)
+  affinity: {}
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: node
+  #           operator: In
+  #           values:
+  #           - service
+  #   podAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       podAffinityTerm:
+  #         labelSelector:
+  #           matchExpressions:
+  #           - key: app
+  #             operator: In
+  #             values:
+  #             - nginx
+  #         topologyKey: kubernetes.io/hostname
+
+  # Pod 중단 예산 (업데이트 시 가용성 보장)
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+    # maxUnavailable: 1
+
+# 서비스 설정
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+  labels: {}
+
+# ConfigMap 설정 (설정 데이터)
+configMap:
+  enabled: false
+  data:
+    # my-key: "my-value"
+    SPRING_PROFILES_ACTIVE: dev
+    # Or use app.properties file for nginx example
+    # app.properties: |
+    #   server.port=8080
+    #   management.endpoints.web.exposure.include=health,info,metrics
+    #   management.endpoint.health.show-details=always
+
+# 환경 변수
+env:
+  - name: ENV
+    value: "production"
+  - name: LOG_LEVEL
+    value: "info"
+
+# ConfigMap/Secret에서 환경 변수 가져오기
+# envFrom:
+#   - configMapRef:
+#       name: '{{ include "starter-template.fullname" . }}-config'
+
+# 인그레스 설정 (외부 접근)
+ingress:
+  enabled: false
+  className: "alb"
+  annotations:
+    {}
+    # alb.ingress.kubernetes.io/scheme: internet-facing
+    # alb.ingress.kubernetes.io/target-type: ip
+    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    # alb.ingress.kubernetes.io/ssl-redirect: "443"
+  hosts:
+    - host: starter-app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# 서비스 계정 설정
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+  automountServiceAccountToken: true
+
+# RBAC 설정 (역할 기반 접근 제어)
+rbac:
+  create: false
+  clusterRole: false # ClusterRole 생성 시 true로 설정
+  rules:
+    # ClusterRole 규칙 예시
+    # - apiGroups: [""]
+    #   resources: ["pods"]
+    #   verbs: ["get", "list", "watch"]
+
+# 수평 Pod 자동 스케일러 (HPA)
+hpa:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+
+# 네트워크 정책 (보안)
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: frontend
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+
+# 볼륨 마운트
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+  # PVC 볼륨들은 deployment.yaml에서 자동으로 추가됩니다
+
+# 볼륨
+volumes:
+  - name: tmp
+    emptyDir: {}
+  # PVC 볼륨들은 deployment.yaml에서 자동으로 추가됩니다
+
+# Persistent Volume 설정 (영구 스토리지)
+persistence:
+  enabled: false
+  volumes:
+    # 데이터 저장용 PVC
+    - name: data
+      size: 10Gi
+      accessModes:
+        - ReadWriteOnce
+      storageClass: "" # 기본 StorageClass 사용
+      mountPath: /data
+      annotations: {}
+      # selector: {}  # 특정 PV 선택 시 사용
+
+    # 로그 저장용 PVC 예시
+    - name: logs
+      size: 5Gi
+      accessModes:
+        - ReadWriteOnce
+      storageClass: ""
+      mountPath: /var/log/app
+      annotations: {}
+
+# 모든 리소스에 추가할 공통 라벨
+commonLabels: {}
+
+# 모든 리소스에 추가할 공통 어노테이션
+commonAnnotations: {}

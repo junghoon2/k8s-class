@@ -1,0 +1,23 @@
+{{- if .Values.deployment.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "starter-template.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "starter-template.labels" . | nindent 4 }}
+  {{- with (include "starter-template.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.deployment.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.deployment.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if .Values.deployment.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.deployment.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "starter-template.selectorLabels" . | nindent 6 }}
+{{- end }} 

@@ -12,20 +12,20 @@ global:
 
 # 애플리케이션 설정
 app:
-  name: starter-app
+  name: super-mario
   version: "1.0.0"
 
 # 이미지 설정
 image:
   registry: docker.io
-  repository: nginx
-  tag: "1.25-alpine"
+  repository: pengbai/docker-supermario
+  tag: "latest"
   pullPolicy: IfNotPresent
   pullSecrets: []
 
 # 배포(Deployment) 설정
 deployment:
-  replicaCount: 3
+  replicaCount: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -64,7 +64,7 @@ deployment:
   # 생존성 및 준비성 프로브
   livenessProbe:
     httpGet:
-      path: /health
+      path: /
       port: http
     initialDelaySeconds: 30
     periodSeconds: 10
@@ -73,7 +73,7 @@ deployment:
 
   readinessProbe:
     httpGet:
-      path: /ready
+      path: /
       port: http
     initialDelaySeconds: 5
     periodSeconds: 5
@@ -168,7 +168,7 @@ rbac:
 
 # ConfigMap 설정 (설정 데이터)
 configMap:
-  enabled: true
+  enabled: false
   data:
     # my-key: "my-value"
     SPRING_PROFILES_ACTIVE: dev
