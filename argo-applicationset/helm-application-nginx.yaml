@@ -1,0 +1,28 @@
+---
+# 3. Private Helm Repository 사용
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # Private Helm Repository (Harbor, ChartMuseum 등)
+    repoURL: https://github.com/junghoon2/k8s-class.git
+    targetRevision: main
+    path: helm/nginx
+    helm:
+      releaseName: nginx
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nginx
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - Validate=true
