@@ -1,0 +1,605 @@
+# ArgoCD ApplicationSet 베스트 프랙티스 완전 정복
+# 23년차 DevOps 엔지니어를 위한 실무 패턴 모음집 🚀
+
+---
+# 1. 🏆 Production-Ready ApplicationSet (다중 환경)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: microservices-multi-env
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: microservices
+    app.kubernetes.io/part-of: platform
+    environment: multi
+  annotations:
+    # 중요한 메타데이터 추가
+    applicationset.argoproj.io/description: "Multi-environment microservices deployment"
+    applicationset.argoproj.io/owner: "platform-team"
+    applicationset.argoproj.io/last-updated: "2024-12-21"
+spec:
+  # 🔄 동기화 정책 (이거 꼭 설정해!)
+  syncPolicy:
+    preserveResourcesOnDeletion: true  # Application 삭제 시 리소스 보존
+    applicationsSync: sync  # 생성된 Application들 자동 동기화
+  
+  # 🎯 Matrix Generator (환경 x 서비스 조합)
+  generators:
+  - matrix:
+      generators:
+      # 환경 목록
+      - list:
+          elements:
+          - env: dev
+            cluster: https://kubernetes.default.svc
+            replicaCount: "1"
+            resources.cpu: "100m"
+            resources.memory: "128Mi"
+            domain: "dev.company.com"
+            targetRevision: develop
+          - env: staging
+            cluster: https://staging-cluster.company.com
+            replicaCount: "2"
+            resources.cpu: "200m"
+            resources.memory: "256Mi"
+            domain: "staging.company.com"
+            targetRevision: release/v1.0
+          - env: prod
+            cluster: https://prod-cluster.company.com
+            replicaCount: "3"
+            resources.cpu: "500m"
+            resources.memory: "512Mi"
+            domain: "company.com"
+            targetRevision: v1.0.0  # 운영은 태그로!
+      
+      # 서비스 목록
+      - list:
+          elements:
+          - name: user-service
+            namespace: backend
+            port: "8080"
+            healthPath: "/health"
+            team: backend-team
+          - name: order-service
+            namespace: backend
+            port: "8081"
+            healthPath: "/actuator/health"
+            team: backend-team
+          - name: payment-service
+            namespace: backend
+            port: "8082"
+            healthPath: "/health"
+            team: payment-team
+          - name: notification-service
+            namespace: notification
+            port: "8083"
+            healthPath: "/health"
+            team: platform-team
+          - name: frontend
+            namespace: frontend
+            port: "3000"
+            healthPath: "/api/health"
+            team: frontend-team
+
+  # 📝 Application 템플릿
+  template:
+    metadata:
+      name: '{{ name }}-{{ env }}'
+      namespace: argocd
+      labels:
+        app.kubernetes.io/name: '{{ name }}'
+        app.kubernetes.io/instance: '{{ name }}-{{ env }}'
+        app.kubernetes.io/component: microservice
+        app.kubernetes.io/part-of: platform
+        environment: '{{ env }}'
+        team: '{{ team }}'
+      annotations:
+        # 🔔 알림 설정 (환경별로 다르게)
+        notifications.argoproj.io/subscribe.on-sync-failed.slack: '{{ team }}-alerts'
+        notifications.argoproj.io/subscribe.on-health-degraded.slack: '{{ team }}-alerts'
+        # 운영환경만 특별 알림
+        '{{- if eq .env "prod" }}'
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: 'prod-deployments'
+        '{{- end }}'
+        # Git 정보 추가
+        app.kubernetes.io/git-repo: 'https://github.com/company/microservices'
+        app.kubernetes.io/git-revision: '{{ targetRevision }}'
+        
+      # 🏷️ Finalizer 설정 (중요!)
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+      
+    spec:
+      project: '{{ env }}-project'  # 환경별 프로젝트 분리
+      
+      source:
+        repoURL: https://github.com/company/microservices.git
+        targetRevision: '{{ targetRevision }}'
+        path: 'charts/{{ name }}'
+        helm:
+          releaseName: '{{ name }}'
+          valueFiles:
+          - values.yaml
+          - 'environments/{{ env }}/values.yaml'
+          - 'environments/{{ env }}/{{ name }}-values.yaml'
+          
+          # 🎛️ 환경별 매개변수 오버라이드
+          parameters:
+          - name: image.tag
+            value: '{{ targetRevision }}'
+          - name: replicaCount
+            value: '{{ replicaCount }}'
+          - name: resources.requests.cpu
+            value: '{{ resources.cpu }}'
+          - name: resources.requests.memory
+            value: '{{ resources.memory }}'
+          - name: service.port
+            value: '{{ port }}'
+          - name: ingress.host
+            value: '{{ name }}.{{ domain }}'
+          - name: healthCheck.path
+            value: '{{ healthPath }}'
+          - name: environment
+            value: '{{ env }}'
+            
+      destination:
+        server: '{{ cluster }}'
+        namespace: '{{ namespace }}-{{ env }}'  # 환경별 네임스페이스 분리
+        
+      # ⚙️ 환경별 동기화 정책
+      syncPolicy:
+        # 개발환경만 자동 동기화
+        '{{- if eq .env "dev" }}'
+        automated:
+          prune: true
+          selfHeal: true
+        '{{- else }}'
+        # 스테이징/운영은 수동 동기화
+        automated: {}
+        '{{- end }}'
+        
+        syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - PruneLast=true
+        - RespectIgnoreDifferences=true
+        
+        # 🔄 재시도 정책
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+            
+      # 🚫 무시할 차이점들
+      ignoreDifferences:
+      - group: apps
+        kind: Deployment
+        jsonPointers:
+        - /spec/replicas
+      - group: ""
+        kind: Service
+        jsonPointers:
+        - /spec/clusterIP
+
+---
+# 2. 🌐 Git Directories Generator (모노레포 패턴)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: monorepo-services
+  namespace: argocd
+  labels:
+    pattern: monorepo
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+    
+  generators:
+  # Git 디렉토리 기반 자동 발견
+  - git:
+      repoURL: https://github.com/company/monorepo.git
+      revision: main
+      directories:
+      - path: services/*/
+      - path: infrastructure/*/
+        exclude: infrastructure/docs  # 제외할 디렉토리
+      
+      # 🏷️ 디렉토리별 메타데이터 추출
+      template:
+        metadata:
+          name: 'monorepo-{{path.basename}}'
+          labels:
+            source-path: '{{path}}'
+            
+  template:
+    metadata:
+      name: 'monorepo-{{path.basename}}'
+      labels:
+        app.kubernetes.io/name: '{{path.basename}}'
+        source.type: monorepo
+        
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/company/monorepo.git
+        targetRevision: main
+        path: '{{path}}'
+        
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+        
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+
+---
+# 3. 🎯 Cluster Generator (다중 클러스터 배포)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: multi-cluster-apps
+  namespace: argocd
+  labels:
+    pattern: multi-cluster
+spec:
+  generators:
+  # 클러스터 기반 생성
+  - clusters:
+      selector:
+        matchLabels:
+          environment: production  # 운영 클러스터만 대상
+        matchExpressions:
+        - key: cluster-type
+          operator: In
+          values: ["workload", "compute"]
+      
+      # 🏷️ 클러스터별 설정 오버라이드
+      template:
+        metadata:
+          name: 'multi-app-{{name}}'
+          labels:
+            cluster-name: '{{name}}'
+            cluster-region: '{{metadata.labels.region}}'
+            
+      values:
+        clusterName: '{{name}}'
+        region: '{{metadata.labels.region}}'
+        nodeCount: '{{metadata.annotations.node-count}}'
+        
+  template:
+    metadata:
+      name: 'monitoring-{{values.clusterName}}'
+      
+    spec:
+      project: infrastructure
+      source:
+        repoURL: https://github.com/company/infrastructure.git
+        targetRevision: main
+        path: monitoring/
+        helm:
+          parameters:
+          - name: cluster.name
+            value: '{{values.clusterName}}'
+          - name: cluster.region
+            value: '{{values.region}}'
+          - name: nodeCount
+            value: '{{values.nodeCount}}'
+            
+      destination:
+        server: '{{server}}'
+        namespace: monitoring
+        
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+---
+# 4. 🔄 Pull Request Generator (GitOps Preview)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: pr-preview-apps
+  namespace: argocd
+  labels:
+    pattern: pr-preview
+spec:
+  generators:
+  # GitHub PR 기반 생성
+  - pullRequest:
+      github:
+        # GitHub 설정
+        owner: company
+        repo: microservices
+        tokenRef:
+          secretName: github-token
+          key: token
+        # PR 조건
+        labels:
+        - preview  # 'preview' 라벨이 있는 PR만
+      
+      # 🏷️ PR 정보 추출
+      template:
+        metadata:
+          name: 'pr-{{number}}-{{branch_slug}}'
+          labels:
+            preview: "true"
+            pr-number: '{{number}}'
+            
+  template:
+    metadata:
+      name: 'preview-{{branch_slug}}-{{number}}'
+      labels:
+        app.kubernetes.io/name: preview-app
+        pr.number: '{{number}}'
+        pr.branch: '{{branch}}'
+      annotations:
+        # PR 링크 추가
+        pr.github.com/url: '{{github.com/company/microservices/pull/{{number}}}}'
+        # 자동 정리 설정 (7일 후)
+        janitor/ttl: "168h"
+        
+    spec:
+      project: preview
+      source:
+        repoURL: https://github.com/company/microservices.git
+        targetRevision: '{{head_sha}}'  # PR의 최신 커밋
+        path: chart/
+        helm:
+          parameters:
+          - name: image.tag
+            value: 'pr-{{number}}'
+          - name: ingress.host
+            value: 'pr-{{number}}.preview.company.com'
+          - name: resources.requests.cpu
+            value: "50m"  # Preview는 리소스 제한
+          - name: resources.requests.memory
+            value: "64Mi"
+            
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: 'preview-{{number}}'
+        
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+
+---
+# 5. 🎛️ SCM Provider Generator (Organization 전체)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: org-wide-apps
+  namespace: argocd
+  labels:
+    pattern: organization-wide
+spec:
+  generators:
+  # GitHub Organization 전체 스캔
+  - scmProvider:
+      github:
+        organization: company
+        tokenRef:
+          secretName: github-token
+          key: token
+        # 필터 조건
+        allBranches: false  # 기본 브랜치만
+        api: https://api.github.com
+      
+      # 🏷️ 저장소 조건 필터
+      filters:
+      - repositoryMatch: ".*-service$"  # '-service'로 끝나는 저장소만
+      - pathsExist: ["helm/Chart.yaml"]  # Helm 차트가 있는 저장소만
+      - branchMatch: "main|master"       # 기본 브랜치만
+      
+  template:
+    metadata:
+      name: '{{repository}}'
+      labels:
+        app.kubernetes.io/name: '{{repository}}'
+        scm.organization: '{{organization}}'
+        
+    spec:
+      project: auto-discovered
+      source:
+        repoURL: '{{url}}'
+        targetRevision: '{{branch}}'
+        path: helm/
+        
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{repository}}'
+        
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: false  # 자동 발견된 앱은 신중하게
+
+---
+# 6. 🔧 Progressive Rollout ApplicationSet
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: progressive-rollout
+  namespace: argocd
+  labels:
+    pattern: progressive-rollout
+spec:
+  # 🕐 점진적 롤아웃을 위한 시간 지연
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+    
+  generators:
+  - list:
+      elements:
+      # Wave 1: Canary 환경 (즉시)
+      - name: payment-service
+        environment: canary
+        weight: "10"
+        delay: "0s"
+        cluster: https://canary-cluster.company.com
+        
+      # Wave 2: 스테이징 (5분 후)
+      - name: payment-service
+        environment: staging
+        weight: "50"
+        delay: "300s"
+        cluster: https://staging-cluster.company.com
+        
+      # Wave 3: 운영 (15분 후)
+      - name: payment-service
+        environment: production
+        weight: "100"
+        delay: "900s"
+        cluster: https://prod-cluster.company.com
+        
+  template:
+    metadata:
+      name: '{{name}}-{{environment}}'
+      annotations:
+        # ⏰ 지연 배포 설정
+        argocd.argoproj.io/sync-wave: '{{delay}}'
+        
+    spec:
+      project: progressive
+      source:
+        repoURL: https://github.com/company/payment-service.git
+        targetRevision: main
+        path: helm/
+        helm:
+          parameters:
+          - name: environment
+            value: '{{environment}}'
+          - name: trafficWeight
+            value: '{{weight}}'
+            
+      destination:
+        server: '{{cluster}}'
+        namespace: payment-{{environment}}
+        
+      # 🚨 환경별 동기화 정책
+      syncPolicy:
+        '{{- if eq .environment "canary" }}'
+        automated:
+          prune: true
+          selfHeal: true
+        '{{- else }}'
+        # 스테이징/운영은 수동 승인 후 진행
+        automated: {}
+        '{{- end }}'
+
+---
+# 7. 🛡️ Security & Compliance ApplicationSet
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: security-compliance
+  namespace: argocd
+  labels:
+    pattern: security
+    compliance.level: high
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+    
+  generators:
+  - list:
+      elements:
+      - name: network-policies
+        namespace: kube-system
+        priority: "1"
+        compliance: "required"
+      - name: pod-security-standards
+        namespace: kube-system
+        priority: "1"
+        compliance: "required"
+      - name: falco-security
+        namespace: security
+        priority: "2"
+        compliance: "recommended"
+      - name: opa-gatekeeper
+        namespace: gatekeeper
+        priority: "2"
+        compliance: "required"
+        
+  template:
+    metadata:
+      name: 'security-{{name}}'
+      labels:
+        app.kubernetes.io/name: '{{name}}'
+        security.compliance: '{{compliance}}'
+        deployment.priority: '{{priority}}'
+      annotations:
+        # 🔒 보안 관련 특별 설정
+        argocd.argoproj.io/sync-wave: '{{priority}}'
+        security.policy/enforce: "true"
+        
+    spec:
+      project: security
+      source:
+        repoURL: https://github.com/company/security-policies.git
+        targetRevision: main
+        path: '{{name}}/'
+        
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+        
+      # 🔐 보안 앱은 엄격한 동기화 정책
+      syncPolicy:
+        # 보안 정책은 수동 동기화
+        automated: {}
+        syncOptions:
+        - CreateNamespace=true
+        - Validate=true
+        - ServerSideApply=true
+        - Replace=false
+        
+        # 🔄 엄격한 재시도 정책
+        retry:
+          limit: 3
+          backoff:
+            duration: 10s
+            maxDuration: 1m
+
+---
+# 📋 ApplicationSet Best Practices 체크리스트
+#
+# ✅ 메타데이터 관리:
+# ├── 명확한 라벨링 전략
+# ├── 소유자 정보 포함
+# ├── 생성/수정 날짜 추적
+# └── 목적과 패턴 명시
+#
+# ✅ 보안 고려사항:
+# ├── 민감한 정보는 Secret 사용
+# ├── RBAC 권한 최소화
+# ├── Git 토큰 순환 정책
+# └── 네임스페이스 분리
+#
+# ✅ 운영 관리:
+# ├── 환경별 동기화 정책 차별화
+# ├── 적절한 재시도 정책
+# ├── 리소스 정리 정책
+# └── 모니터링 및 알림 설정
+#
+# ✅ 성능 최적화:
+# ├── Generator 필터 최적화
+# ├── 불필요한 Application 생성 방지
+# ├── 동기화 빈도 조절
+# └── 리소스 사용량 모니터링
+#
+# ✅ 에러 처리:
+# ├── 실패 시 알림 설정
+# ├── 롤백 전략 수립
+# ├── 의존성 관리
+# └── 장애 격리 방안 

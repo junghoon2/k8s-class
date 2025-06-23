@@ -1,43 +1,46 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: sns-applicationset
+  name: backend-application-set
   namespace: argocd
 spec:
-  # syncPolicy:
-  #   preserveResourcesOnDeletion: true
+  syncPolicy:
+    preserveResourcesOnDeletion: true
   generators:
-  - list:
-      elements:
-      - name: feed-server
-        namespace: sns
-      - name: image-server
-        namespace: sns
-      - name: timeline-server
-        namespace: sns
-      - name: user-server
-        namespace: backend
-      - name: sns-frontend
-        namespace: frontend
+    - list:
+        elements:
+          - name: nginx
+            namespace: nginx
+          - name: super-mario
+            namespace: super-mario
+          # - name: billing
+          #   namespace: billing
+          # - name: user-server
+          #   namespace: backend
+          # - name: sns-frontend
+          #   namespace: frontend
   template:
     metadata:
-      name: '{{ name }}'
+      name: "{{ name }}"
+      # 🏷️ Finalizer 설정 (중요!)
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
     spec:
       project: default
       source:
-        repoURL: https://github.com/junghoon2/k8s-class.git 
+        repoURL: https://github.com/junghoon2/k8s-class.git
         targetRevision: HEAD
-        path: 'sns/{{ name }}'
+        path: "helm/{{ name }}"
         helm:
-          releaseName: '{{ name }}'
+          releaseName: "{{ name }}"
           valueFiles:
-          - ci/jerry-dev-values.yaml
+            - values.yaml
       destination:
         name: in-cluster
-        namespace: '{{ namespace }}'
+        namespace: "{{ namespace }}"
       syncPolicy:
         syncOptions:
-        - CreateNamespace=true
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+          - CreateNamespace=true
+        automated:
+          prune: true
+          selfHeal: true
