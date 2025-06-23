@@ -19,7 +19,8 @@ app:
 image:
   registry: docker.io
   repository: nginx
-  tag: "1.25-alpine"
+  tag: "1.24-alpine"
+  # tag: "1.25-alpine"
   pullPolicy: IfNotPresent
   pullSecrets: []
 

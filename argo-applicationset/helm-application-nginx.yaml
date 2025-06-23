@@ -4,6 +4,12 @@ kind: Application
 metadata:
   name: nginx
   namespace: argocd
+  # 🏷️ Finalizer 설정 (중요!) - 올바른 위치!
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  # 🚨 추가 보호 어노테이션
+  annotations:
+    argocd.argoproj.io/deletion-policy: "retain" # Application 삭제 시에도 리소스 보존
 spec:
   project: default
   source:
@@ -19,8 +25,10 @@ spec:
     namespace: nginx
   syncPolicy:
     automated:
-      prune: true
+      prune: true # 🚨 리소스 자동 삭제 방지
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - Validate=true
+      # - PrunePropagationPolicy=foreground # 안전한 삭제 순서
+      # - Replace=false # 기존 리소스 보호

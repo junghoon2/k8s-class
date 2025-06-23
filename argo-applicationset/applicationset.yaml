@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: backend-application-set
   namespace: argocd
+  # 🛡️ ApplicationSet 자체도 보호
+  annotations:
+    argocd.argoproj.io/deletion-policy: "retain" # 삭제 방지
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true
@@ -25,6 +28,9 @@ spec:
       # 🏷️ Finalizer 설정 (중요!)
       finalizers:
         - resources-finalizer.argocd.argoproj.io
+      # 🚨 추가 보호 어노테이션
+      annotations:
+        argocd.argoproj.io/deletion-policy: "retain" # Application 삭제 시에도 리소스 보존
     spec:
       project: default
       source:
@@ -41,6 +47,16 @@ spec:
       syncPolicy:
         syncOptions:
           - CreateNamespace=true
+          # 🛡️ 추가 보호 옵션들
+          - PrunePropagationPolicy=foreground # 순차적 삭제로 안전성 확보
+          - Replace=false # 기존 리소스 덮어쓰기 방지
         automated:
-          prune: true
+          prune: true # 🚨 이게 핵심! 리소스 자동 삭제 방지
           selfHeal: true
+        # 🔄 재시도 정책 (실패 시 복구)
+        # retry:
+        #   limit: 5
+        #   backoff:
+        #     duration: 5s
+        #     factor: 2
+        #     maxDuration: 3m
