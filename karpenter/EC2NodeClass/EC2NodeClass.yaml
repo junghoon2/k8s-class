@@ -9,13 +9,13 @@ spec:
   amiSelectorTerms:
     - owner: "amazon" # Amazon 공식 AMI만
       name: "amazon-eks-node-al2023-x86_64-standard-1.32-*" # 최신 버전 자동
-  role: "KarpenterNodeRole-eks-test" # replace with your cluster name
+  role: "KarpenterNodeInstanceProfile-test-eks-cluster" # replace with your cluster name
   subnetSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "eks-test" # replace with your cluster name
+        karpenter.sh/discovery: "test-eks-cluster" # replace with your cluster name
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "eks-test" # replace with your cluster name
+        karpenter.sh/discovery: "test-eks-cluster" # replace with your cluster name
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
@@ -25,3 +25,9 @@ spec:
         encrypted: true
         deleteOnTermination: true
         throughput: 125
+  # 태그 설정
+  tags:
+    Team: devops
+    Environment: env
+    Owner: jerry
+    ManagedBy: karpenter
