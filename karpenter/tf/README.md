@@ -9,11 +9,13 @@ Karpenter는 Kubernetes 클러스터의 노드 자동 스케일링을 담당하�
 ### 생성되는 리소스
 
 1. **Karpenter 컨트롤러 IAM 역할**
+
    - IRSA(IAM Roles for Service Accounts)를 통해 Karpenter 파드가 사용
    - EC2 인스턴스 생성, 삭제, 관리 권한
    - SQS 큐 접근 권한 (인터럽션 처리용)
 
 2. **Karpenter 노드 인스턴스 프로파일**
+
    - Karpenter가 생성하는 EC2 인스턴스가 사용
    - EKS 워커 노드 필수 권한들
 
@@ -35,7 +37,7 @@ Karpenter는 Kubernetes 클러스터의 노드 자동 스케일링을 담당하�
 
 ```hcl
 cluster_name         = "test-eks-cluster"
-karpenter_namespace  = "kube-system"
+karpenter_namespace  = "karpenter"
 ```
 
 ### 2. Terraform 초기화 및 적용
@@ -97,13 +99,16 @@ helm install karpenter karpenter/karpenter \
 ### 일반적인 문제들
 
 1. **OIDC 프로바이더 오류**
+
    ```
    Error: error reading EKS Cluster: cluster not found
    ```
+
    - EKS 클러스터 이름이 올바른지 확인
    - 클러스터가 존재하고 접근 가능한지 확인
 
 2. **권한 부족 오류**
+
    - Terraform을 실행하는 사용자/역할에 IAM 관리 권한이 있는지 확인
    - EKS 클러스터 조회 권한이 있는지 확인
 
