@@ -53,25 +53,6 @@ terraform plan
 terraform apply
 ```
 
-### 3. Karpenter 설치
-
-IAM 리소스가 생성된 후, Helm을 사용하여 Karpenter를 설치합니다:
-
-```bash
-# Karpenter Helm 차트 추가
-helm repo add karpenter https://charts.karpenter.sh/
-helm repo update
-
-# Karpenter 설치
-helm install karpenter karpenter/karpenter \
-  --version "0.37.0" \
-  --namespace kube-system \
-  --set "settings.clusterName=test-eks-cluster" \
-  --set "serviceAccount.annotations.eks\.amazonaws\.com/role-arn=$(terraform output -raw karpenter_controller_role_arn)" \
-  --set "settings.interruptionQueue=$(terraform output -raw karpenter_interruption_queue_name)" \
-  --wait
-```
-
 ## 주요 구성 요소
 
 ### Karpenter 컨트롤러 권한

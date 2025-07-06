@@ -9,7 +9,7 @@
         "sqs:ReceiveMessage",
         "sqs:DeleteMessage"
       ],
-      "Resource": "arn:aws:sqs:ap-northeast-2:516696002612:Karpenter-eks-test"
+      "Resource": "arn:aws:sqs:ap-northeast-2:516696002612:test-eks-cluster"
     }
   ]
 }

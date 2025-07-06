@@ -1,17 +1,17 @@
-# helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.0" --namespace "karpenter" --create-namespace -f values.yaml
-# helm diff upgrade karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.0" --namespace "karpenter" -f values.yaml
+# helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.2" --namespace "karpenter" --create-namespace -f values.yaml
+# helm diff upgrade karpenter oci://public.ecr.aws/karpenter/karpenter --version "1.5.2" --namespace "karpenter" -f values.yaml
 
 # 헬름 설치 전 SQS 큐 생성
-# aws sqs create-queue --queue-name "Karpenter-eks-test" --region ap-northeast-2 --profile playground
+# aws sqs create-queue --queue-name "test-eks-cluster" --region ap-northeast-2 --profile playground
 
 # Role에 SQS 정책 추가
-# aws iam put-role-policy --role-name KarpenterControllerRole-eks-test --policy-name SQSInterruptionAccess --policy-document file://sqs-policy.json --profile playground
+# aws iam put-role-policy --role-name KarpenterControllerRole-test-eks-cluster --policy-name SQSInterruptionAccess --policy-document file://sqs-policy.json --profile playground
 
 # -- Global Settings to configure Karpenter
 settings:
   # -- Cluster name.
   clusterName: "test-eks-cluster"
-  interruptionQueue: "Karpenter-test-eks-cluster" # SQS 큐가 없으면 비활성화
+  interruptionQueue: "test-eks-cluster" # SQS 큐가 없으면 비활성화
   featureGates:
     spotToSpotConsolidation: true
 
@@ -26,7 +26,7 @@ controller:
 
 serviceAccount:
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::516696002612:role/KarpenterController-test-eks-cluster"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::516696002612:role/KarpenterControllerRole-test-eks-cluster"
 
 serviceMonitor:
   enabled: true

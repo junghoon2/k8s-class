@@ -9,7 +9,7 @@ spec:
   amiSelectorTerms:
     - owner: "amazon" # Amazon 공식 AMI만
       name: "amazon-eks-node-al2023-x86_64-standard-1.32-*" # 최신 버전 자동
-  role: "KarpenterNodeInstanceProfile-test-eks-cluster" # replace with your cluster name
+  role: "KarpenterNodeRole-test-eks-cluster" # replace with your cluster name
   subnetSelectorTerms:
     - tags:
         karpenter.sh/discovery: "test-eks-cluster" # replace with your cluster name
